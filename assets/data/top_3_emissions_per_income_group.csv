@@ -1,0 +1,13 @@
+entity_ghg,code,annual_emissions_ghg_total_co2eq,wb_region,Income Group
+United States,USA,6054308400.0,North America (WB),H
+Russia,RUS,2729234700.0,Europe and Central Asia (WB),H
+Japan,JPN,1007159200.0,East Asia and Pacific (WB),H
+Democratic Republic of Congo,COD,680714430.0,Sub-Saharan Africa (WB),L
+Sudan,SDN,134296720.0,Sub-Saharan Africa (WB),L
+Chad,TCD,125907390.0,Sub-Saharan Africa (WB),L
+India,IND,4262410800.0,South Asia (WB),LM
+Vietnam,VNM,583496800.0,East Asia and Pacific (WB),LM
+Pakistan,PAK,473777150.0,"Middle East, North Africa, Afghanistan and Pakistan (WB)",LM
+China,CHN,14107007000.0,East Asia and Pacific (WB),UM
+Brazil,BRA,2804430600.0,Latin America and Caribbean (WB),UM
+Indonesia,IDN,1902534800.0,East Asia and Pacific (WB),UM

@@ -84,7 +84,7 @@
     scroller
       .setup({
         step: `#steps-${num} .step`,
-        offset: scrollamaOffset,   // function — re-evaluated on each step check
+        offset: scrollamaOffset(),
         debug: false,
       })
       .onStepEnter(handleStepEnter)
@@ -111,21 +111,41 @@
    * @param {string} sectionNum  "1" | "2" | "3"
    * @param {number} stepNum     1 | 2 | 3
    */
-  function updateMap(sectionNum, stepNum) {
-    const mapEl = document.getElementById(`map-${sectionNum}`);
-    if (!mapEl) return;
+  // Year shown for each step in section 1
+  const SECTION1_YEARS = { 1: 2022, 2: 1990, 3: 2022 };
 
-    // Placeholder: just update the label so you can see it working
-    const note = mapEl.querySelector(".map-note");
-    if (note) {
-      note.textContent = `Step ${sectionNum}-${stepNum} active — update map here`;
+  function updateMap(sectionNum, stepNum) {
+    if (sectionNum === "1") {
+      if (window.GHGLineChart) window.GHGLineChart.setStep(stepNum);
+      if (window.GHGMap)      window.GHGMap.setYear(SECTION1_YEARS[stepNum] || 2022);
+    }
+  }
+
+  // ----------------------------------------------------------
+  // 4. Image-text sections: swap frames on scroll
+  // ----------------------------------------------------------
+  document.querySelectorAll(".image-text-section").forEach(function (section) {
+    const frames = Array.from(section.querySelectorAll(".image-frame"));
+    const steps  = Array.from(section.querySelectorAll(".image-text-step"));
+
+    if (!frames.length || !steps.length) return;
+
+    function activateFrame(idx) {
+      frames.forEach(function (f, i) {
+        f.classList.toggle("is-active", i === idx);
+      });
     }
 
-    // TODO: replace this block with real D3 / Mapbox / Leaflet logic, e.g.:
-    // if (sectionNum === "1") {
-    //   if (stepNum === 1) { /* zoom to region A */ }
-    //   if (stepNum === 2) { /* highlight layer B */ }
-    // }
-  }
+    // Fire when the step crosses the 40%-from-top threshold
+    const observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          activateFrame(steps.indexOf(entry.target));
+        }
+      });
+    }, { rootMargin: "-40% 0px -40% 0px", threshold: 0 });
+
+    steps.forEach(function (step) { observer.observe(step); });
+  });
 
 })();

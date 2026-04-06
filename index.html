@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Climate Finance</title>
+  <title>Climate Change: Responsibility & Resilience</title>
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -13,12 +13,13 @@
   <!-- Progress Nav -->
   <nav id="progress-nav">
     <div class="nav-inner">
-      <span class="nav-title">Climate Finance</span>
+      <a href="#title" class="nav-title">Climate Change: Responsibility & Resilience</a>
       <ul class="nav-sections">
-        <li><a href="#title" class="nav-link active" data-section="title">Introduction</a></li>
+        <li><a href="#intro" class="nav-link" data-section="intro">Introduction</a></li>
         <li><a href="#section-1" class="nav-link" data-section="section-1">Driving Forces</a></li>
         <li><a href="#section-2" class="nav-link" data-section="section-2">Unequal Risk</a></li>
         <li><a href="#section-3" class="nav-link" data-section="section-3">Mitigation & Resilience</a></li>
+        <li><a href="#section-4" class="nav-link" data-section="section-4">Conclusion</a></li>
       </ul>
       <div class="progress-bar-container">
         <div id="progress-bar"></div>
@@ -30,12 +31,13 @@
   <section id="title" class="title-section">
     <div class="title-content">
       <p class="eyebrow">Data Story</p>
-      <h1 class="headline">Climate Finance</h1>
-      <p class="subhead">A subtitle goes here describing the scope and stakes of this story in one or two compelling sentences.</p>
+      <h1 class="headline">Climate Change:</h1>
+      <h2 class="headline2">Taking Responsibility and Building Resilience</h2>
+      <p class="subhead">Climate change is a story of industrialization and consumerism scarring the Earth, resulting in an outsized burden on those least responsible and least capable of bearing that burden.</p>
       <div class="byline">
         <span>Talia Berler</span>
         <span class="separator">·</span>
-        <span>March 2026</span>
+        <span>April 2026</span>
       </div>
       <div class="scroll-cue">
         <span>Scroll to explore</span>
@@ -44,42 +46,68 @@
     </div>
   </section>
 
+  <!-- Introduction Section -->
+  <section id="intro" class="image-text-section">
+    <div class="image-text-inner">
+      <div class="image-panel">
+        <div class="image-frame is-active">
+          <a href="https://www.google.com/url?sa=t&source=web&rct=j&url=https%3A%2F%2Fwww.independent.co.uk%2Fclimate-change%2Fnews%2Fworst-climate-disasters-2022-hurricane-wildfires-heatwave-b2255198.html&ved=0CBYQjRxqFwoTCLj1vvK12ZMDFQAAAAAdAAAAABAW&opi=89978449" target="_blank">
+            <img src="assets/images/UN emissions gap report comp.avif" alt="UN Emissions Gap Report" class="frame-img">
+          </a>
+        </div>
+        <div class="image-frame">
+          <a href="https://www.google.com/url?sa=t&source=web&rct=j&url=https://www.sandiegouniontribune.com/2015/11/17/summit-in-philippines-sets-stage-for-climate-action-in-paris/&ved=2ahUKEwjC7d3ctdmTAxXsTDABHa79KSQQjhx6BAgEEBk&opi=89978449&usg=AOvVaw00yVtgk54YrjAWtGUPH7iV" target="_blank">
+            <img src="assets/images/00000169-0cde-dbbe-a16f-4efe14cb0000.webp" alt="" class="frame-img">
+          </a>
+        </div>
+      </div>
+      <div class="image-text-body">
+        <h2 class="image-text-heading">Introduction</h2>
+        <div class="image-text-step">
+          <p><strong>The world is in the midst of a climate crisis.</strong> The effects of climate change are already being felt around the world, and the consequences are becoming more severe in the form of extreme weather events, rising sea levels, and rising temperatures. The climate crisis is not just a problem for the environment, it is a problem for humanity.</p>
+        </div>
+        <div class="image-text-step">
+          <p>This story is about the sources of climate change and the unequal burden it places on the world's most vulnerable populations. Further, it is about the response to the climate crisis and the approaches to mitigation and adaptation that are being put in place, though there is still a great deal of work to be done.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Scrollytelling Wrapper -->
   <main id="scrolly-main">
 
-    <!-- ── Section 1 ── -->
+    <!-- Section 1 -->
     <section id="section-1" class="scrolly-section">
       <div class="section-header">
         <span class="section-number">01</span>
         <h2>Driving Forces</h2>
-        <p class="section-intro">A brief introductory paragraph that sets up what the reader will learn in this section. Keep it tight — one or two sentences.</p>
+        <p class="section-intro"><a href="https://climate.mit.edu/explainers/greenhouse-gases">Greenhouse gas (GHG) emissions</a> are the primary driving force of climate change, as these gasses stay trapped in the atmosphere and disrupt the natural balance of heat and energy on Earth. This sections explores how global GHG emissions have drastically increased in the last two centuries, with certain groups of countries contributing far more than others.</p>
       </div>
 
       <div class="scrolly-container">
-        <!-- Sticky map panel -->
+        <!-- Sticky chart panel -->
         <div class="sticky-map" id="map-1">
-          <div class="map-placeholder">
-            <span class="map-label">Map 1</span>
-            <p class="map-note">Map visualization will go here</p>
-          </div>
+          <div id="world-ghg-line-chart"></div>
         </div>
 
         <!-- Scrolling text steps -->
         <div class="steps" id="steps-1">
           <div class="step" data-step="1-1">
-            <p>First annotation for Section 1. This text appears alongside the map and triggers a visual update when it scrolls into view.</p>
+            <p>The global trend of greenhouse gas emissions reflects a dramatic increase since the advent of the industrial revolution, with sharp acceleration in the last century. GHG emissions are measured in metric tonnes of <a href="https://www.climatepartner.com/en/knowledge/glossary/carbon-dioxide-equivalent">carbon dioxide-equivalents</a> over a 100-year timescale and account for land use changes.</p>
           </div>
           <div class="step" data-step="1-2">
-            <p>Second annotation. Describe what changed in the visualization and why it matters to the story.</p>
+            <p>These emissions are not evenly distributed across the world. High and upper-middle income countries have contributed the majority of emissions reaching 80% of world emissions in 2024, while lower-middle and low income countries  contributed the least, with 16% and 4% of world emissions, respectively.</p>
           </div>
           <div class="step" data-step="1-3">
-            <p>Third annotation. Bring the section to a close with a key finding or transition to the next section.</p>
+            <p>Higher income countries tend to be higher emitters and are located at higher latitudes than lower income countries, which are characteristically lower emitters and <a href="https://time.com/6173536/economic-risk-climate-geography/">located closer to the Equator.</a></p>
+            <br>
+            <p>Thus, <a href="https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://www.weforum.org/stories/2023/01/climate-crisis-poor-davos2023/&ved=2ahUKEwi3yrS8l9qTAxXHlGoFHekHCxoQFnoECBcQAQ&usg=AOvVaw2cOBBCUjtiASocMWQ8Ar9P">lower income countries are being hit first and hardest by drought, extreme heat, sea level rise, and other effects of climate change.</a> Despite contributing minimally to the climate crisis and benefiting the least from the associated industrialization, poorer countries have already begun to shoulder the burden of anthropogenic climate change.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ── Section 2 ── -->
+    <!-- Section 2 -->
     <section id="section-2" class="scrolly-section">
       <div class="section-header">
         <span class="section-number">02</span>
@@ -109,11 +137,11 @@
       </div>
     </section>
 
-    <!-- ── Section 3 ── -->
+    <!-- Section 3 -->
     <section id="section-3" class="scrolly-section">
       <div class="section-header">
         <span class="section-number">03</span>
-        <h2>Mitigation & Resilience</h2>
+        <h2>Mitigation &amp; Resilience</h2>
         <p class="section-intro">Introductory paragraph for section three. This is typically where the story reaches its central argument or reveals.</p>
       </div>
 
@@ -141,6 +169,33 @@
 
   </main>
 
+  <!-- Conclusion Section -->
+  <section id="section-4" class="image-text-section">
+    <div class="image-text-inner">
+      <div class="image-panel">
+        <div class="image-frame is-active">
+          <div class="image-placeholder">
+            <span class="image-label">Image 1</span>
+          </div>
+        </div>
+        <div class="image-frame">
+          <div class="image-placeholder">
+            <span class="image-label">Image 2</span>
+          </div>
+        </div>
+      </div>
+      <div class="image-text-body">
+        <h2 class="image-text-heading">Conclusion</h2>
+        <div class="image-text-step">
+          <p>Concluding text goes here. Synthesize the key findings from all three sections and reinforce the central argument of the story.</p>
+        </div>
+        <div class="image-text-step">
+          <p>A second paragraph can point toward implications, call to action, or broader context for the reader to take away.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Footer -->
   <footer id="story-footer">
     <div class="footer-inner">
@@ -153,6 +208,9 @@
   <!-- Scripts -->
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="https://unpkg.com/scrollama@3.2.0/build/scrollama.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+
+  <script src="world-ghg-line.js"></script>
   <script src="script.js"></script>
 
 </body>

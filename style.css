@@ -23,6 +23,26 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Prose links — visible in all text areas */
+.image-text-body a,
+.section-intro a,
+.step p a,
+.footer-inner a {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-decoration-color: var(--color-border);
+  text-underline-offset: 3px;
+  transition: color 0.2s, text-decoration-color 0.2s;
+}
+
+.image-text-body a:hover,
+.section-intro a:hover,
+.step p a:hover,
+.footer-inner a:hover {
+  color: var(--color-accent);
+  text-decoration-color: var(--color-accent);
+}
+
 html { scroll-behavior: smooth; font-size: 18px; }
 
 body {
@@ -64,7 +84,11 @@ body {
   text-transform: uppercase;
   color: var(--color-ink);
   white-space: nowrap;
+  text-decoration: none;
+  flex-shrink: 0;
 }
+
+.nav-title:hover { color: var(--color-accent); }
 
 .nav-sections {
   display: flex;
@@ -141,6 +165,16 @@ body {
 .headline {
   font-family: var(--font-serif);
   font-size: clamp(2.4rem, 6vw, 4.2rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+  margin-bottom: 12px;
+}
+
+.headline2 {
+  font-family: var(--font-serif);
+  font-size: clamp(1.8rem, 4vw, 3.6rem);
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.01em;
@@ -322,6 +356,340 @@ body {
   color: var(--color-ink);
 }
 
+
+/* ============================================================
+   World GHG Line Chart — Section 1
+   ============================================================ */
+#world-ghg-line-chart {
+  width: 100%;
+  height: 100%;
+  background: var(--color-bg);
+  position: relative;
+  overflow: hidden;
+}
+
+#world-ghg-line-chart svg {
+  display: block;
+}
+
+.ghg-line-grid line {
+  stroke: var(--color-border);
+  stroke-dasharray: 3 3;
+}
+.ghg-line-grid path { display: none; }
+
+.ghg-line-axis path,
+.ghg-line-axis line {
+  stroke: var(--color-border);
+}
+.ghg-line-axis text {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  fill: var(--color-ink-light);
+}
+
+.ghg-line-area {
+  fill: var(--color-accent);
+  fill-opacity: 0.08;
+}
+
+.ghg-line-path {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 2.2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.ghg-line-title {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  fill: var(--color-ink);
+}
+
+.ghg-line-label {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  fill: var(--color-ink-lighter);
+}
+
+.ghg-line-source {
+  font-family: var(--font-sans);
+  font-size: 9px;
+  fill: var(--color-ink-lighter);
+}
+
+/* Tooltip */
+.ghg-line-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(20, 20, 20, 0.88);
+  color: #fff;
+  padding: 7px 11px;
+  border-radius: 4px;
+  font-family: var(--font-sans);
+  font-size: 0.76rem;
+  line-height: 1.55;
+  white-space: nowrap;
+  z-index: 30;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+.ghg-line-tooltip strong { font-weight: 700; }
+
+/* Focus indicator */
+.ghg-line-focus circle {
+  fill: var(--color-accent);
+  stroke: #fff;
+  stroke-width: 2;
+}
+.ghg-focus-line {
+  stroke: var(--color-ink-lighter);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+/* Invisible overlay for mouse tracking */
+.ghg-line-overlay {
+  fill: none;
+  pointer-events: all;
+  cursor: crosshair;
+}
+
+/* Stacked area legend */
+.ghg-legend-text {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  fill: var(--color-ink);
+}
+
+/* ============================================================
+   Choropleth Map Overlay — Section 1, Step 3
+   ============================================================ */
+.ghg-map-overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--color-bg);
+}
+
+.map-country {
+  stroke: #fff;
+  stroke-width: 0.4px;
+  transition: opacity 0.15s ease;
+}
+
+.map-country:hover {
+  opacity: 0.75;
+  cursor: default;
+}
+
+.map-graticule {
+  fill: none;
+  stroke: var(--color-border);
+  stroke-width: 0.3px;
+}
+
+/* Income group filter buttons */
+.ghg-map-filters {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  z-index: 5;
+}
+
+.ghg-map-filter-btn {
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-ink-lighter);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  padding: 3px 9px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+
+.ghg-map-filter-btn:hover {
+  color: var(--color-ink);
+  border-color: #aaa;
+}
+
+.ghg-map-filter-btn.is-active {
+  color: #fff;
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.map-sphere {
+  fill: none;
+  stroke: var(--color-border);
+  stroke-width: 0.6px;
+}
+
+/* ============================================================
+   Image-Text Sections (Introduction & Conclusion)
+   ============================================================ */
+.image-text-section {
+  padding-top: var(--nav-height);
+  padding-bottom: 0;
+  background: var(--color-bg-section);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.image-text-inner {
+  max-width: var(--wide-max-width);
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  gap: 56px;
+  align-items: flex-start;
+}
+
+/* Sticky image panel — one frame visible at a time */
+.image-panel {
+  flex: 1;
+  position: sticky;
+  top: calc(var(--nav-height) + 24px);
+  height: calc(100vh - var(--nav-height) - 48px);
+  max-height: 600px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+/* Frames stack on top of each other; only the active one is visible */
+.image-frame {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.55s ease;
+}
+
+.image-frame.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.frame-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.image-frame .image-placeholder {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: unset;
+  border-radius: 0;
+  border: none;
+}
+
+.image-placeholder {
+  background: #eee8de;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-label {
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink-lighter);
+  border: 1px solid var(--color-border);
+  padding: 4px 12px;
+  border-radius: 2px;
+}
+
+/* Scrolling text column */
+.image-text-body {
+  width: var(--step-max-width);
+  flex-shrink: 0;
+  padding-top: 30vh;
+  padding-bottom: 30vh;
+}
+
+.image-text-heading {
+  font-family: var(--font-serif);
+  font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-ink);
+  margin-bottom: 40px;
+  border-left: 3px solid var(--color-accent);
+  padding-left: 16px;
+}
+
+/* Each paragraph is a scroll step */
+.image-text-step {
+  margin-bottom: 50vh;
+}
+
+.image-text-step:last-child {
+  margin-bottom: 0;
+}
+
+.image-text-step p {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--color-ink-light);
+}
+
+/* ── Tablet (768px – 1023px) ─────────────────────────────── */
+@media (max-width: 1023px) {
+  .image-text-inner {
+    display: block;
+    padding: 0;
+  }
+
+  .image-panel {
+    position: sticky;
+    top: var(--nav-height);
+    width: 100%;
+    height: 50vh;
+    min-height: 280px;
+    max-height: none;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    z-index: 10;
+  }
+
+  .image-text-body {
+    width: 100%;
+    padding: 24px 24px 64px;
+  }
+
+  .image-text-step {
+    max-width: 600px;
+    margin: 0 auto 32px;
+  }
+
+  .image-text-step:last-child { margin-bottom: 0; }
+}
+
+@media (max-width: 767px) {
+  .image-text-section {
+    padding-top: var(--nav-height);
+  }
+
+  .image-text-body {
+    padding: 20px 16px 48px;
+  }
+}
+
 /* ============================================================
    Footer
    ============================================================ */
@@ -366,11 +734,23 @@ body {
 /* ============================================================
    Responsive
    Breakpoints:
-     ≥ 1024px  desktop  — side-by-side sticky layout
+     ≥ 1200px  desktop  — full nav title + links
+     1024–1199px mid    — hide nav title, links stay text
      768–1023px tablet  — map pinned on top, steps scroll below
      < 768px   phone   — compact, nav collapses to dots
      < 480px   small phone — tightest spacing
    ============================================================ */
+
+/* ── Mid-range (1024px – 1199px) ────────────────────────── */
+@media (min-width: 768px) and (max-width: 1199px) {
+  /* Hide site title so nav links don't overflow */
+  .nav-title { display: none; }
+
+  .nav-link {
+    padding: 0 12px;
+    font-size: 0.67rem;
+  }
+}
 
 /* ── Tablet (768px – 1023px) ─────────────────────────────── */
 @media (min-width: 768px) and (max-width: 1023px) {
@@ -408,12 +788,6 @@ body {
   }
 
   .step:last-child { margin-bottom: 0; }
-
-  /* Tighter nav text */
-  .nav-link {
-    padding: 0 10px;
-    font-size: 0.65rem;
-  }
 }
 
 /* ── Phone (< 768px) ─────────────────────────────────────── */
