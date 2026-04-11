@@ -119,6 +119,9 @@
       if (window.GHGLineChart) window.GHGLineChart.setStep(stepNum);
       if (window.GHGMap)      window.GHGMap.setYear(SECTION1_YEARS[stepNum] || 2022);
     }
+    if (sectionNum === "2") {
+      if (window.GAINMap) window.GAINMap.setStep(stepNum);
+    }
   }
 
   // ----------------------------------------------------------

@@ -28,11 +28,20 @@
 .section-intro a,
 .step p a,
 .footer-inner a {
-  color: var(--color-ink);
   text-decoration: underline;
   text-decoration-color: var(--color-border);
   text-underline-offset: 3px;
   transition: color 0.2s, text-decoration-color 0.2s;
+}
+
+.image-text-body a,
+.step p a,
+.footer-inner a {
+  color: var(--color-ink);
+}
+
+.section-intro a {
+  color: inherit;
 }
 
 .image-text-body a:hover,
@@ -86,6 +95,11 @@ body {
   white-space: nowrap;
   text-decoration: none;
   flex-shrink: 0;
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .nav-title { display: block; }
 }
 
 .nav-title:hover { color: var(--color-accent); }
@@ -268,7 +282,11 @@ body {
 .section-intro {
   font-size: 1rem;
   color: var(--color-ink-light);
-  max-width: 540px;
+  max-width: 580px;
+}
+
+ol.section-intro {
+  padding-left: 1.5rem;
 }
 
 /* Scrolly container — sticky map + text steps side by side */
@@ -369,6 +387,21 @@ body {
 }
 
 #world-ghg-line-chart svg {
+  display: block;
+}
+
+/* ============================================================
+   ND-GAIN Map — Section 2
+   ============================================================ */
+#gain-map {
+  width: 100%;
+  height: 100%;
+  background: var(--color-bg);
+  position: relative;
+  overflow: hidden;
+}
+
+#gain-map svg {
   display: block;
 }
 
@@ -555,11 +588,12 @@ body {
 
 /* Sticky image panel — one frame visible at a time */
 .image-panel {
-  flex: 1;
+  flex: 0 0 38%;
+  max-width: 460px;
   position: sticky;
   top: calc(var(--nav-height) + 24px);
   height: calc(100vh - var(--nav-height) - 48px);
-  max-height: 600px;
+  max-height: 520px;
   border-radius: 4px;
   overflow: hidden;
   border: 1px solid var(--color-border);
@@ -657,8 +691,9 @@ body {
     position: sticky;
     top: var(--nav-height);
     width: 100%;
-    height: 50vh;
-    min-height: 280px;
+    max-width: none;
+    height: 38vh;
+    min-height: 200px;
     max-height: none;
     border-radius: 0;
     border-left: none;
@@ -683,6 +718,11 @@ body {
 @media (max-width: 767px) {
   .image-text-section {
     padding-top: var(--nav-height);
+  }
+
+  .image-panel {
+    height: 28vh;
+    min-height: 160px;
   }
 
   .image-text-body {
@@ -743,9 +783,6 @@ body {
 
 /* ── Mid-range (1024px – 1199px) ────────────────────────── */
 @media (min-width: 768px) and (max-width: 1199px) {
-  /* Hide site title so nav links don't overflow */
-  .nav-title { display: none; }
-
   .nav-link {
     padding: 0 12px;
     font-size: 0.67rem;
