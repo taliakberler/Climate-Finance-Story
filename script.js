@@ -122,6 +122,9 @@
     if (sectionNum === "2") {
       if (window.GAINMap) window.GAINMap.setStep(stepNum);
     }
+    if (sectionNum === "3") {
+      if (window.SankeyChart) window.SankeyChart.setStep(stepNum);
+    }
   }
 
   // ----------------------------------------------------------

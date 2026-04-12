@@ -68,9 +68,54 @@
 
   function displayLabel(id) {
     if (id.startsWith("Region:")) return REGION_SHORT[id.slice(7)] || id.slice(7);
-    // Strip prefix for all other layers
     return id.replace(/^\w+:/, "");
   }
+
+  // ── Step-highlight state ──────────────────────────────────
+  let currentStep  = 1;
+  let pendingStep  = null;
+  let linkPaths    = null;
+  let nodeRects    = null;
+  let nodeLabels   = null;
+
+  // Returns the set of Use node IDs that should be dimmed for a given step
+  function dimmedForStep(stepNum) {
+    if (stepNum === 1) return new Set(["Use:Adaptation", "Use:Dual benefit"]);
+    if (stepNum === 2) return new Set(["Use:Mitigation", "Use:Dual benefit"]);
+    return new Set();
+  }
+
+  function applyStep(stepNum, animate) {
+    const dim = dimmedForStep(stepNum);
+    const dur = animate ? 400 : 0;
+
+    linkPaths.transition().duration(dur)
+      .attr("stroke-opacity", function (d) {
+        return (dim.has(d.source.id) || dim.has(d.target.id)) ? 0.04 : 0.3;
+      });
+
+    nodeRects.transition().duration(dur)
+      .attr("fill-opacity", function (d) {
+        return dim.has(d.id) ? 0.12 : 1;
+      });
+
+    nodeLabels.transition().duration(dur)
+      .attr("fill-opacity", function (d) {
+        return dim.has(d.id) ? 0.15 : 1;
+      });
+  }
+
+  // ── Public API ────────────────────────────────────────────
+  window.SankeyChart = {
+    setStep: function (stepNum) {
+      currentStep = stepNum;
+      if (linkPaths) {
+        applyStep(stepNum, true);
+      } else {
+        pendingStep = stepNum;
+      }
+    },
+  };
 
   // ── Data aggregation ─────────────────────────────────────
   function aggregate(data) {
@@ -109,12 +154,15 @@
   // ── Render ───────────────────────────────────────────────
   function render(rawNodes, rawLinks) {
     d3.select(container).selectAll("*").remove();
+    linkPaths = null;
+    nodeRects = null;
+    nodeLabels = null;
 
     const W = container.clientWidth;
     const H = container.clientHeight;
 
-    // Margins leave room for outside labels on col 0 (left) and col 3 (right)
-    const margin = { top: 58, right: 148, bottom: 20, left: 96 };
+    // Tighter margins for a wider Sankey flow area on desktop
+    const margin = { top: 58, right: 118, bottom: 20, left: 78 };
     const innerW = W - margin.left - margin.right;
     const innerH = H - margin.top  - margin.bottom;
 
@@ -153,7 +201,7 @@
     }
 
     // ── Links ─────────────────────────────────────────────
-    g.append("g").attr("fill", "none")
+    linkPaths = g.append("g").attr("fill", "none")
       .selectAll("path")
       .data(links)
       .join("path")
@@ -170,7 +218,7 @@
         .on("mouseleave", function () { tooltip.style("display", "none"); });
 
     // ── Node rects ────────────────────────────────────────
-    g.append("g")
+    nodeRects = g.append("g")
       .selectAll("rect")
       .data(nodes)
       .join("rect")
@@ -188,42 +236,31 @@
         .on("mouseleave", function () { tooltip.style("display", "none"); });
 
     // ── Node labels ───────────────────────────────────────
-    // Col 0 (Origin): label LEFT of node  → needs left margin
-    // Col 1 (Use):    label RIGHT of node → sits between cols 1 and 2
-    // Col 2 (Region): label RIGHT of node → sits between cols 2 and 3
-    // Col 3 (Dest):   label RIGHT of node → needs right margin
+    // Col 0 (Origin): label LEFT of node
+    // Col 1 (Use), 2 (Region), 3 (Dest): label RIGHT of node
+    const useX  = d3.min(nodes.filter(function (n) { return n.id.startsWith("Use:"); }),
+                         function (n) { return n.x0; }) || 0;
+    const col1T = useX + 1;  // anything with x0 < col1T is col 0
+
     const labelG = svg.append("g")
       .attr("font-family", "Franklin Gothic Medium, Arial Narrow, Arial, sans-serif")
-      .attr("font-size", "10px")
       .attr("fill", "#1a1a1a");
 
-    // Determine column boundaries (Use nodes are col 1, Region are col 2)
-    const useX = d3.min(nodes.filter(function (n) { return n.id.startsWith("Use:"); }),
-                        function (n) { return n.x0; }) || 0;
-    const col1Threshold = useX + 1;   // anything < this x0 is col 0
-    const destX = d3.min(nodes.filter(function (n) { return n.id.startsWith("Dest:"); }),
-                         function (n) { return n.x0; }) || innerW;
-
-    nodes.forEach(function (d) {
-      const lbl   = displayLabel(d.id);
-      const isOrigin = d.x0 < col1Threshold;
-      const isDest   = d.x0 >= destX - 1;
-
-      // Origin: label to the left; everyone else: to the right
-      const anchor = isOrigin ? "end" : "start";
-      const xPos   = isOrigin
-        ? margin.left + d.x0 - 5
-        : margin.left + d.x1 + 5;
-      const yPos   = margin.top + (d.y0 + d.y1) / 2;
-
-      labelG.append("text")
-        .attr("x", xPos)
-        .attr("y", yPos)
+    nodeLabels = labelG.selectAll("text")
+      .data(nodes)
+      .join("text")
+        .attr("x", function (d) {
+          return d.x0 < col1T
+            ? margin.left + d.x0 - 5
+            : margin.left + d.x1 + 5;
+        })
+        .attr("y", function (d) { return margin.top + (d.y0 + d.y1) / 2; })
         .attr("dy", "0.35em")
-        .attr("text-anchor", anchor)
-        .attr("font-size", isDest || isOrigin ? "11px" : "9.5px")
-        .text(lbl);
-    });
+        .attr("text-anchor", function (d) { return d.x0 < col1T ? "end" : "start"; })
+        .attr("font-size", function (d) {
+          return (d.x0 < col1T || d.id.startsWith("Dest:")) ? "11px" : "9.5px";
+        })
+        .text(function (d) { return displayLabel(d.id); });
 
     // ── Column headers ────────────────────────────────────
     const COLS = [
@@ -264,6 +301,15 @@
       .attr("y", H - 5)
       .attr("text-anchor", "end")
       .text("Source: Climate Policy Initiative");
+
+    // Apply the current step immediately (no animation on first render)
+    applyStep(currentStep, false);
+
+    if (pendingStep !== null) {
+      applyStep(pendingStep, false);
+      currentStep  = pendingStep;
+      pendingStep  = null;
+    }
   }
 
   // ── Load + build ─────────────────────────────────────────
