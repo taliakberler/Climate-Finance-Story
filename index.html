@@ -144,17 +144,14 @@
         <p class="section-intro">Though the subject of climate change often brings feelings of despair and hopelessness, it is essential to remember that we can always:</p>
         <ol class="section-intro">
           <li>Reduce emissions to reduce the future impacts of climate change</li>
-          <li>Improve our ability to withstand and recuperate from climate change induced disasters</li>
+          <li>Improve societal and institutional capacity to withstand and recuperate from climate change induced disasters</li>
         </ol>
-        <p class="section-intro">These two forms of action in the face of climate change are referred to as <strong>Mitigation</strong> and <strong>Resilience</strong>.</p>
+        <p class="section-intro">These two forms of action in the face of climate change are referred to, respectively, as <strong>Mitigation</strong> and <strong>Resilience</strong>. Using data from the Climate Policy Initiative, we can see where finance is flowing towards these two initiatives geographically and from an economic development perspective.</p>
       </div>
 
       <div class="scrolly-container">
         <div class="sticky-map" id="map-3">
-          <div class="map-placeholder">
-            <span class="map-label">Map 3</span>
-            <p class="map-note">Map visualization will go here</p>
-          </div>
+          <div id="sankey-chart"></div>
         </div>
 
         <div class="steps" id="steps-3">
@@ -223,8 +220,11 @@
   <script src="https://unpkg.com/scrollama@3.2.0/build/scrollama.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 
+  <script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12/dist/d3-sankey.min.js"></script>
+
   <script src="world-ghg-line.js"></script>
   <script src="gain-map.js"></script>
+  <script src="sankey.js"></script>
   <script src="script.js"></script>
 
 </body>
