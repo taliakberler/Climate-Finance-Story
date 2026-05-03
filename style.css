@@ -321,8 +321,26 @@ ol.section-intro li {
 
 .finance-cards {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   margin: 12px 0;
+}
+
+@keyframes hint-blink {
+  0%, 100% { opacity: 0.7; }
+  50%       { opacity: 0.15; }
+}
+
+.finance-cards-hint {
+  width: 100%;
+  text-align: center;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-lighter);
+  margin: 4px 0 0;
+  animation: hint-blink 2.2s ease-in-out infinite;
 }
 
 .finance-card {
@@ -933,7 +951,7 @@ a:hover .ghg-line-source,
   /* Stack map on top of steps */
   .scrolly-container {
     display: block;       /* disable flex so position:sticky works correctly */
-    padding: 0 24px;
+    padding: 0 0 0 24px;  /* no right padding — step text aligns with overlay right edge */
   }
 
   /* Map: full-width, sticky below nav, ~55 viewport height */
@@ -952,15 +970,16 @@ a:hover .ghg-line-source,
   }
 
   /* Steps: full-width column below map */
-  .steps {
+  .steps,
+  .scrolly-container .steps {
     width: 100%;
     padding-top: 40px;
     padding-bottom: 80px;
   }
 
   .step {
-    max-width: 600px;
-    margin: 0 auto 40px;
+    max-width: none;
+    margin: 0 0 40px;
   }
 
   .step:last-child { margin-bottom: 0; }
@@ -1001,9 +1020,10 @@ a:hover .ghg-line-source,
   }
 
   /* Steps: full-width with horizontal padding reinstated */
-  .steps {
+  .steps,
+  .scrolly-container .steps {
     width: 100%;
-    padding: 24px 16px 64px;
+    padding: 24px 0 64px 16px;  /* no right padding — step text aligns with overlay right edge */
   }
 
   .step { margin-bottom: 28px; }

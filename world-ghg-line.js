@@ -10,7 +10,7 @@
   const DATA_URL =
     "https://ourworldindata.org/grapher/total-ghg-emissions.csv?v=1&csvType=full&useColumnShortNames=true";
 
-  const EMISSIONS_CSV = "assets/data/emissions_by_region.csv";
+  const EMISSIONS_CSV = "assets/data/cumulative_emissions_2024.csv";
 
   const WORLD_TOPO_URL =
     "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
@@ -175,13 +175,13 @@
     // Lookup: ISO alpha-3 → row
     const lookup = new Map();
     emissionsData.forEach(function (d) {
-      if (d.code && d.entity_ghg !== "World") lookup.set(d.code, d);
+      if (d.ISO) lookup.set(d.ISO, d);
     });
 
     // Emissions color scale (log, light→dark red)
-    // Fixed legend domain: 0.1 Bt – 15 Bt (in raw tCO₂e)
+    // Fixed legend domain: 0.1 Bt – 600 Bt cumulative (in raw tCO₂e)
     const LEGEND_MIN = 1e8;    // 0.1 Bt
-    const LEGEND_MAX = 1.5e10; // 15 Bt
+    const LEGEND_MAX = 6e11;   // 600 Bt
     const colorScale = d3.scaleSequentialLog(
       [LEGEND_MIN, LEGEND_MAX],
       function (t) { return d3.interpolateReds(0.1 + 0.9 * t); }
@@ -192,13 +192,14 @@
     // ── SVG ───────────────────────────────────────────────
     // Tighten vertical sections on tall (desktop) containers
     const tall     = H > 480;
+    const TOP_PAD  = tall ? 10 : 8;
     const TITLE_H  = tall ? 18 : 22;
     const FILTER_H = tall ? 28 : 36;
     const LEGEND_H = tall ? 28 : 40;
     const SOURCE_H = tall ? 10 : 14;
     const PAD_X    = 14;
 
-    const mapTop    = TITLE_H + FILTER_H + 4;
+    const mapTop    = TOP_PAD + TITLE_H + FILTER_H + 4;
     const mapBottom = H - LEGEND_H - SOURCE_H - 4;
 
     const svg = d3.select(mapDiv).append("svg")
@@ -221,7 +222,7 @@
       const row  = iso3 ? lookup.get(iso3) : null;
       if (!row) return COLOR_NO_DATA;
       if (activeGroup !== "all" && row["Income Group"] !== activeGroup) return COLOR_NO_DATA;
-      const em = +row.annual_emissions_ghg_total_co2eq;
+      const em = +row.cumulative_emissions_2024;
       return em > 0 ? colorScale(em) : COLOR_NO_DATA;
     }
 
@@ -243,9 +244,9 @@
     svg.append("text")
       .attr("class", "ghg-line-title")
       .attr("x", W / 2)
-      .attr("y", TITLE_H - 4)
+      .attr("y", TOP_PAD + TITLE_H - 4)
       .attr("text-anchor", "middle")
-      .text("GHG Emissions by Country, 2024");
+      .text("Cumulative GHG Emissions by Country, 1850-2024");
 
     // ── Gradient legend ───────────────────────────────────
     const barW  = Math.min(200, W * 0.35);
@@ -275,9 +276,9 @@
 
     svg.append("text").attr("class", "ghg-legend-text")
       .attr("x", barX + barW + 4).attr("y", barY + barH)
-      .attr("text-anchor", "start").text("15 Bt");
+      .attr("text-anchor", "start").text("600 Bt");
 
-    // Tick marks: 0.5, 1, 5, 10 Bt
+    // Tick marks: 1, 10, 100, 500 Bt
     function logPos(v) {
       return (Math.log10(v) - Math.log10(LEGEND_MIN)) /
              (Math.log10(LEGEND_MAX) - Math.log10(LEGEND_MIN)) * barW;
@@ -285,7 +286,7 @@
     function fmtTick(v) {
       return d3.format(".1~f")(v / 1e9) + " Bt";
     }
-    [5e8, 1e9, 5e9, 1e10].forEach(function (v) {
+    [1e9, 1e10, 1e11, 5e11].forEach(function (v) {
       const tx = barX + logPos(v);
       svg.append("line")
         .attr("x1", tx).attr("x2", tx)
@@ -311,7 +312,7 @@
       .attr("x", W - PAD_X).attr("y", H - 4)
       .attr("text-anchor", "end");
     sourceText.append("a")
-      .attr("href", "https://ourworldindata.org/greenhouse-gas-emissions")
+      .attr("href", "https://ourworldindata.org/grapher/cumulative-co2-including-land")
       .attr("target", "_blank").attr("rel", "noopener noreferrer")
       .append("tspan").text("Source: Our World in Data");
     sourceText.append("tspan").text(" / ");
@@ -331,12 +332,12 @@
         if (currentView !== "map") return;
         const iso3 = NUM_TO_ISO3[+d.id];
         const row  = iso3 ? lookup.get(iso3) : null;
-        const name = row ? row.entity_ghg : (iso3 || "Unknown");
+        const name = row ? row.Country_x : (iso3 || "Unknown");
         const grp  = row && row["Income Group"]
           ? INCOME_GROUP_LABELS[row["Income Group"]] : "No income data";
-        const em   = row ? +row.annual_emissions_ghg_total_co2eq : 0;
+        const em   = row ? +row.cumulative_emissions_2024 : 0;
         const emTxt = em > 0
-          ? d3.format(".3f")(em / 1e9) + " BtCO\u2082e" : "\u2014";
+          ? d3.format(".3f")(em / 1e9) + " BtCO\u2082e cumulative" : "\u2014";
 
         const [mx, my] = d3.pointer(event, container);
         const flip = mx > W / 2;
@@ -351,7 +352,7 @@
     // ── Filter buttons (HTML, appended last so they sit on top) ──
     const filtersDiv = document.createElement("div");
     filtersDiv.className = "ghg-map-filters";
-    filtersDiv.style.top = (TITLE_H + 4) + "px";
+    filtersDiv.style.top = (TOP_PAD + TITLE_H + 4) + "px";
 
     [
       { key: "all", label: "All countries" },

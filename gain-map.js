@@ -145,13 +145,14 @@
     const H = container.clientHeight;
 
     const tall     = H > 480;
+    const TOP_PAD  = tall ? 10 : 8;
     const TITLE_H  = tall ? 18 : 22;
     const FILTER_H = tall ? 28 : 36;
     const LEGEND_H = tall ? 28 : 40;
     const SOURCE_H = tall ? 10 : 14;
     const PAD_X    = 14;
 
-    const mapTop    = TITLE_H + FILTER_H + 4;
+    const mapTop    = TOP_PAD + TITLE_H + FILTER_H + 4;
     const mapBottom = H - LEGEND_H - SOURCE_H - 4;
 
     const svg = d3.select(container).append("svg")
@@ -202,7 +203,7 @@
     const titleEl = svg.append("text")
       .attr("class", "ghg-line-title")
       .attr("x", W / 2)
-      .attr("y", TITLE_H - 4)
+      .attr("y", TOP_PAD + TITLE_H - 4)
       .attr("text-anchor", "middle")
       .text(view0.title);
 
@@ -288,7 +289,7 @@
     // ── Filter buttons ────────────────────────────────────
     const filtersDiv = document.createElement("div");
     filtersDiv.className = "ghg-map-filters";
-    filtersDiv.style.top = (TITLE_H + 4) + "px";
+    filtersDiv.style.top = (TOP_PAD + TITLE_H + 4) + "px";
 
     [
       { key: "all", label: "All countries" },
