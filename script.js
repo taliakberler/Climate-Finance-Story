@@ -154,4 +154,11 @@
     steps.forEach(function (step) { observer.observe(step); });
   });
 
+  // Finance card flip on click
+  document.querySelectorAll('.finance-card').forEach(function(card) {
+    card.addEventListener('click', function() {
+      card.classList.toggle('is-flipped');
+    });
+  });
+
 })();

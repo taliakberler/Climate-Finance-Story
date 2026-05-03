@@ -16,8 +16,8 @@
   --color-step-bg: rgba(255, 255, 255, 0.97);
 
   --nav-height: 52px;
-  --step-max-width: 380px;
-  --body-max-width: 720px;
+  --step-max-width: 560px;
+  --body-max-width: 1020px;
   --wide-max-width: 1200px;
 }
 
@@ -188,7 +188,7 @@ body {
 
 .headline2 {
   font-family: var(--font-serif);
-  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-size: clamp(1.2rem, 3.5vw, 2.0rem);
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.01em;
@@ -200,7 +200,15 @@ body {
   font-size: 1.2rem;
   line-height: 1.55;
   color: var(--color-ink-light);
-  max-width: 560px;
+  max-width: 800px;
+  margin: 0 auto 28px;
+}
+
+.subhead2 {
+  font-size: 1.4rem;
+  line-height: 1.55;
+  color: var(--color-ink-light);
+  max-width: 800px;
   margin: 0 auto 28px;
 }
 
@@ -254,11 +262,20 @@ body {
 
 /* Section header */
 .section-header {
-  max-width: var(--body-max-width);
+  max-width: var(--wide-max-width);
   margin: 0 auto 64px;
-  padding: 0 24px;
-  border-left: 3px solid var(--color-accent);
-  padding-left: 20px;
+  padding: 0 24px 0 47px; /* 24px to match map left edge + 3px bar + 20px gap */
+  position: relative;
+}
+
+.section-header::before {
+  content: '';
+  position: absolute;
+  left: 24px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--color-accent);
 }
 
 .section-number {
@@ -282,10 +299,10 @@ body {
 .section-intro {
   font-size: 1rem;
   color: var(--color-ink-light);
-  max-width: 580px;
+  padding: 0 24px 0 0;
 }
 
-ol.section-intro {
+/* ol.section-intro {
   padding-left: 0;
   list-style-position: inside;
   display: flex;
@@ -300,6 +317,65 @@ ol.section-intro li {
   padding: 8px 14px;
   border-radius: 3px;
   list-style-position: inside;
+} */
+
+.finance-cards {
+  display: flex;
+  gap: 16px;
+  margin: 12px 0;
+}
+
+.finance-card {
+  flex: 1;
+  perspective: 800px;
+  cursor: pointer;
+  min-height: 140px;
+}
+
+.finance-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 140px;
+  transform-style: preserve-3d;
+  transition: transform 0.55s ease;
+  border-radius: 3px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.13);
+}
+
+.finance-card.is-flipped .finance-card-inner {
+  transform: rotateY(180deg);
+}
+
+.finance-card-front,
+.finance-card-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  background: #e8e3db;
+  border-radius: 3px;
+  padding: 24px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.finance-card-back {
+  transform: rotateY(180deg);
+  font-size: 0.95rem;
+  color: var(--color-ink-light);
+  line-height: 1.5;
+}
+
+.finance-card-label {
+  font-family: var(--font-sans);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-accent);
 }
 
 /* Scrolly container — sticky map + text steps side by side */
@@ -324,7 +400,7 @@ ol.section-intro li {
   border: 1px solid var(--color-border);
 }
 
-.map-placeholder {
+/* .map-placeholder {
   width: 100%;
   height: 100%;
   background: #eee8de;
@@ -332,8 +408,8 @@ ol.section-intro li {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-}
+  gap: 10px; 
+} */
 
 .map-label {
   font-family: var(--font-sans);
@@ -342,7 +418,7 @@ ol.section-intro li {
   text-transform: uppercase;
   color: var(--color-ink-lighter);
   border: 1px solid var(--color-border);
-  padding: 4px 12px;
+  padding: 8px 12px;
   border-radius: 2px;
 }
 
@@ -361,6 +437,10 @@ ol.section-intro li {
   display: flex;
   flex-direction: column;
   gap: 0;
+}
+
+.scrolly-container .steps {
+  width: 380px;
 }
 
 .step {
@@ -458,14 +538,21 @@ ol.section-intro li {
 
 .ghg-line-label {
   font-family: var(--font-sans);
-  font-size: 10px;
-  fill: var(--color-ink-lighter);
+  font-size: 11px;
+  fill: var(--color-ink);
 }
 
 .ghg-line-source {
   font-family: var(--font-sans);
   font-size: 9px;
   fill: var(--color-ink-lighter);
+  cursor: pointer;
+}
+
+a:hover .ghg-line-source,
+.ghg-line-source a:hover tspan {
+  fill: var(--color-ink);
+  text-decoration: underline;
 }
 
 /* Tooltip */
@@ -610,14 +697,16 @@ ol.section-intro li {
   margin: 0 auto;
   padding: 0 24px;
   display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
   gap: 56px;
   align-items: flex-start;
 }
 
 /* Sticky image panel — one frame visible at a time */
 .image-panel {
-  flex: 0 0 38%;
-  max-width: 460px;
+  flex: 0 0 45%;
+  max-width: 620px;
   position: sticky;
   top: calc(var(--nav-height) + 24px);
   height: calc(100vh - var(--nav-height) - 48px);
@@ -646,6 +735,26 @@ ol.section-intro li {
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.image-frame .img-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.52);
+  color: rgba(255, 255, 255, 0.82);
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+.image-frame .img-caption a {
+  color: rgba(255, 255, 255, 0.82);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .image-frame .image-placeholder {
@@ -696,6 +805,7 @@ ol.section-intro li {
 /* Each paragraph is a scroll step */
 .image-text-step {
   margin-bottom: 50vh;
+  padding-left: 19px;
 }
 
 .image-text-step:last-child {
@@ -736,8 +846,9 @@ ol.section-intro li {
   }
 
   .image-text-step {
-    max-width: 600px;
-    margin: 0 auto 32px;
+    max-width: none;
+    margin: 0 0 32px;
+    padding-left: 19px;
   }
 
   .image-text-step:last-child { margin-bottom: 0; }

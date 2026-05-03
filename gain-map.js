@@ -248,7 +248,10 @@
       .text("No data");
 
     // Source
-    svg.append("text").attr("class", "ghg-line-source")
+    svg.append("a")
+      .attr("href", "https://gain.nd.edu/our-work/country-index/")
+      .attr("target", "_blank").attr("rel", "noopener noreferrer")
+      .append("text").attr("class", "ghg-line-source")
       .attr("x", W - PAD_X).attr("y", H - 4)
       .attr("text-anchor", "end")
       .text("Source: ND-GAIN Country Index");

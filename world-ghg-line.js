@@ -142,7 +142,7 @@
     // buildChart removes existing SVGs internally
     buildChart(stored.worldData, stored.series, stored.pivoted);
     buildMap(stored.topoData, stored.emissionsData);
-    syncViewState();
+    switchView(currentView);
   }
 
   // Debounced ResizeObserver on the sticky container
@@ -307,10 +307,18 @@
       .text("No data");
 
     // Source
-    svg.append("text").attr("class", "ghg-line-source")
+    const sourceText = svg.append("text").attr("class", "ghg-line-source")
       .attr("x", W - PAD_X).attr("y", H - 4)
-      .attr("text-anchor", "end")
-      .text("Source: Our World in Data / World Bank");
+      .attr("text-anchor", "end");
+    sourceText.append("a")
+      .attr("href", "https://ourworldindata.org/greenhouse-gas-emissions")
+      .attr("target", "_blank").attr("rel", "noopener noreferrer")
+      .append("tspan").text("Source: Our World in Data");
+    sourceText.append("tspan").text(" / ");
+    sourceText.append("a")
+      .attr("href", "https://datahelpdesk.worldbank.org/knowledgebase/articles/906519-world-bank-country-and-lending-groups")
+      .attr("target", "_blank").attr("rel", "noopener noreferrer")
+      .append("tspan").text("World Bank");
 
     // ── Tooltip ───────────────────────────────────────────
     const tooltip = d3.select(container)
@@ -414,7 +422,7 @@
     // Y axis
     g.append("g").attr("class", "ghg-line-axis")
       .call(d3.axisLeft(y).ticks(5)
-        .tickFormat((d) => `${d3.format(".0f")(d)} BtCO\u2082e`));
+        .tickFormat((d) => `${d3.format(".0f")(d)}`));
 
     // Y-axis label
     g.append("text")
@@ -423,7 +431,7 @@
       .attr("x", -(h / 2))
       .attr("y", -margin.left + 22)
       .attr("text-anchor", "middle")
-      .text("Billion tCO\u2082e / year");
+      .text("Billion tonnes CO\u2082e / year");
 
     // Title
     titleEl = g.append("text")
@@ -434,7 +442,10 @@
       .text("World Greenhouse Gas Emissions, 1850\u20132024");
 
     // Source note
-    svg.append("text")
+    svg.append("a")
+      .attr("href", "https://ourworldindata.org/grapher/total-ghg-emissions")
+      .attr("target", "_blank").attr("rel", "noopener noreferrer")
+      .append("text")
       .attr("class", "ghg-line-source")
       .attr("x", W - margin.right)
       .attr("y", H - 6)

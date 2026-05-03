@@ -295,7 +295,10 @@
       .text("Global Climate Finance Flows (USD Billions)");
 
     // ── Source note ───────────────────────────────────────
-    svg.append("text")
+    svg.append("a")
+      .attr("href", "https://www.climatepolicyinitiative.org/resources/data-visualizations/global-landscape-of-climate-finance-data-dashboard/")
+      .attr("target", "_blank").attr("rel", "noopener noreferrer")
+      .append("text")
       .attr("class", "ghg-line-source")
       .attr("x", W - 8)
       .attr("y", H - 5)
