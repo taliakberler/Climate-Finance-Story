@@ -178,13 +178,16 @@
       if (d.ISO) lookup.set(d.ISO, d);
     });
 
-    // Emissions color scale (log, light→dark red)
-    // Fixed legend domain: 0.1 Bt – 600 Bt cumulative (in raw tCO₂e)
+    // Emissions color scale: green → light yellow → dark red (log)
     const LEGEND_MIN = 1e8;    // 0.1 Bt
     const LEGEND_MAX = 6e11;   // 600 Bt
     const colorScale = d3.scaleSequentialLog(
       [LEGEND_MIN, LEGEND_MAX],
-      function (t) { return d3.interpolateReds(0.1 + 0.9 * t); }
+      function (t) {
+        return t < 0.5
+          ? d3.interpolateRgb("green", "#ffffbf")(t * 2)
+          : d3.interpolateRgb("#ffffbf", "#c11c2a")((t - 0.5) * 2);
+      }
     ).clamp(true);
 
     // activeGroup is module-level — persists across rebuilds
@@ -337,7 +340,7 @@
           ? INCOME_GROUP_LABELS[row["Income Group"]] : "No income data";
         const em   = row ? +row.cumulative_emissions_2024 : 0;
         const emTxt = em > 0
-          ? d3.format(".3f")(em / 1e9) + " BtCO\u2082e cumulative" : "\u2014";
+          ? d3.format("d")(em / 1e9) + " BtCO\u2082e cumulative" : "\u2014";
 
         const [mx, my] = d3.pointer(event, container);
         const flip = mx > W / 2;
