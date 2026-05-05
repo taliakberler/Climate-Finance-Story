@@ -144,12 +144,12 @@
     const W = container.clientWidth;
     const H = container.clientHeight;
 
-    const tall     = H > 480;
-    const TOP_PAD  = tall ? 10 : 8;
-    const TITLE_H  = tall ? 18 : 22;
-    const FILTER_H = tall ? 28 : 36;
-    const LEGEND_H = tall ? 28 : 40;
-    const SOURCE_H = tall ? 10 : 14;
+    const compact  = H < 420;
+    const TOP_PAD  = compact ? 4 : 10;
+    const TITLE_H  = compact ? 14 : 18;
+    const FILTER_H = compact ? 22 : 28;
+    const LEGEND_H = compact ? 20 : 28;
+    const SOURCE_H = compact ? 6  : 10;
     const PAD_X    = 14;
 
     const mapTop    = TOP_PAD + TITLE_H + FILTER_H + 4;
@@ -208,12 +208,14 @@
       .text(view0.title);
 
     // ── Legend ────────────────────────────────────────────
+    const legendFontPx = Math.max(9, Math.min(11, W / 38));
     const barW = Math.min(200, W * 0.35);
     const barH = 10;
-    const barX = PAD_X + 32;
-    const barY = H - SOURCE_H - barH - (tall ? 10 : 18);
+    const barX = PAD_X + Math.round(Math.max(24, W * 0.08));
+    const barY = H - SOURCE_H - barH - (compact ? 8 : 10);
 
     svg.append("text").attr("class", "ghg-legend-text")
+      .attr("font-size", legendFontPx + "px")
       .attr("x", barX - 4).attr("y", barY + barH)
       .attr("text-anchor", "end").text("0");
 
@@ -223,6 +225,7 @@
       .attr("fill", "url(#" + view0.gradId + ")");
 
     svg.append("text").attr("class", "ghg-legend-text")
+      .attr("font-size", legendFontPx + "px")
       .attr("x", barX + barW + 4).attr("y", barY + barH)
       .attr("text-anchor", "start").text("100");
 
@@ -234,17 +237,19 @@
         .attr("y1", barY + barH).attr("y2", barY + barH + 4)
         .attr("stroke", "#888").attr("stroke-width", 0.8);
       svg.append("text").attr("class", "ghg-legend-text")
+        .attr("font-size", legendFontPx + "px")
         .attr("x", tx).attr("y", barY + barH + 13)
         .attr("text-anchor", "middle").text(v);
     });
 
     // No-data swatch
-    const ndX = barX + barW + 56;
+    const ndX = barX + barW + Math.round(Math.max(28, Math.min(56, W * 0.12)));
     svg.append("rect")
       .attr("x", ndX).attr("y", barY)
       .attr("width", 10).attr("height", barH)
       .attr("fill", COLOR_NO_DATA);
     svg.append("text").attr("class", "ghg-legend-text")
+      .attr("font-size", legendFontPx + "px")
       .attr("x", ndX + 14).attr("y", barY + barH)
       .text("No data");
 

@@ -1003,6 +1003,10 @@ a:hover .ghg-line-source,
     padding-left: 16px;
   }
 
+  .section-header::before {
+    left: 0;
+  }
+
   /* Scrolly layout: block so sticky works; no side padding (map edge-to-edge) */
   .scrolly-container {
     display: block;

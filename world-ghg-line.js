@@ -193,13 +193,13 @@
     // activeGroup is module-level — persists across rebuilds
 
     // ── SVG ───────────────────────────────────────────────
-    // Tighten vertical sections on tall (desktop) containers
-    const tall     = H > 480;
-    const TOP_PAD  = tall ? 10 : 8;
-    const TITLE_H  = tall ? 18 : 22;
-    const FILTER_H = tall ? 28 : 36;
-    const LEGEND_H = tall ? 28 : 40;
-    const SOURCE_H = tall ? 10 : 14;
+    // On compact containers (mobile/tablet) shrink chrome to give map more room
+    const compact  = H < 420;
+    const TOP_PAD  = compact ? 4 : 10;
+    const TITLE_H  = compact ? 14 : 18;
+    const FILTER_H = compact ? 22 : 28;
+    const LEGEND_H = compact ? 20 : 28;
+    const SOURCE_H = compact ? 6  : 10;
     const PAD_X    = 14;
 
     const mapTop    = TOP_PAD + TITLE_H + FILTER_H + 4;
@@ -252,10 +252,11 @@
       .text("Cumulative GHG Emissions by Country, 1850-2024");
 
     // ── Gradient legend ───────────────────────────────────
+    const legendFontPx = Math.max(9, Math.min(11, W / 38));
     const barW  = Math.min(200, W * 0.35);
     const barH  = 10;
-    const barX  = PAD_X + 32;
-    const barY  = H - SOURCE_H - barH - (tall ? 10 : 18);
+    const barX  = PAD_X + Math.round(Math.max(24, W * 0.08));
+    const barY  = H - SOURCE_H - barH - (compact ? 8 : 10);
 
     const gradId = "ghg-em-grad";
     const grad = svg.append("defs").append("linearGradient")
@@ -269,6 +270,7 @@
     }
 
     svg.append("text").attr("class", "ghg-legend-text")
+      .attr("font-size", legendFontPx + "px")
       .attr("x", barX - 4).attr("y", barY + barH)
       .attr("text-anchor", "end").text("0.1 Bt");
 
@@ -278,6 +280,7 @@
       .attr("fill", "url(#" + gradId + ")");
 
     svg.append("text").attr("class", "ghg-legend-text")
+      .attr("font-size", legendFontPx + "px")
       .attr("x", barX + barW + 4).attr("y", barY + barH)
       .attr("text-anchor", "start").text("600 Bt");
 
@@ -289,24 +292,27 @@
     function fmtTick(v) {
       return d3.format(".1~f")(v / 1e9) + " Bt";
     }
-    [1e9, 1e10, 1e11, 5e11].forEach(function (v) {
+    const tickVals = W < 420 ? [1e9, 1e11] : [1e9, 1e10, 1e11, 5e11];
+    tickVals.forEach(function (v) {
       const tx = barX + logPos(v);
       svg.append("line")
         .attr("x1", tx).attr("x2", tx)
         .attr("y1", barY + barH).attr("y2", barY + barH + 4)
         .attr("stroke", "#888").attr("stroke-width", 0.8);
       svg.append("text").attr("class", "ghg-legend-text")
+        .attr("font-size", legendFontPx + "px")
         .attr("x", tx).attr("y", barY + barH + 13)
         .attr("text-anchor", "middle").text(fmtTick(v));
     });
 
     // No-data swatch
-    const ndX = barX + barW + 56;
+    const ndX = barX + barW + Math.round(Math.max(28, Math.min(56, W * 0.12)));
     svg.append("rect")
       .attr("x", ndX).attr("y", barY)
       .attr("width", 10).attr("height", barH)
       .attr("fill", COLOR_NO_DATA);
     svg.append("text").attr("class", "ghg-legend-text")
+      .attr("font-size", legendFontPx + "px")
       .attr("x", ndX + 14).attr("y", barY + barH)
       .text("No data");
 
@@ -493,19 +499,22 @@
         .attr("d", stackArea);
 
       // Legend
+      const stackLegendFontPx = Math.max(9, Math.min(11, W / 38));
+      const stackRowH = stackLegendFontPx < 10 ? 16 : 20;
       const legendG = stackedViewG.append("g")
         .attr("class", "ghg-stack-legend")
         .attr("transform", "translate(12, 8)");
 
       [...INCOME_GROUPS].reverse().forEach(function (key, i) {
         const row = legendG.append("g")
-          .attr("transform", `translate(0, ${i * 20})`);
+          .attr("transform", `translate(0, ${i * stackRowH})`);
         row.append("rect")
           .attr("width", 11).attr("height", 11)
           .attr("fill", INCOME_COLORS_SVG[key]);
         row.append("text")
           .attr("x", 15).attr("y", 9)
           .attr("class", "ghg-legend-text")
+          .attr("font-size", stackLegendFontPx + "px")
           .text(INCOME_LABELS[key]);
       });
     }

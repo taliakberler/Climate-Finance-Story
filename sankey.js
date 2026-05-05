@@ -152,9 +152,9 @@
     const filtersDiv = document.getElementById("sankey-region-filters");
     if (!filtersDiv) return;
     const H       = container.clientHeight;
-    const tall    = H > 480;
-    const TOP_PAD = tall ? 10 : 8;
-    const TITLE_H = tall ? 22 : 26;
+    const compact = H < 420;
+    const TOP_PAD = compact ? 4 : 10;
+    const TITLE_H = compact ? 18 : 22;
     filtersDiv.style.top = (TOP_PAD + TITLE_H + 4) + "px";
   }
 
@@ -315,10 +315,10 @@
     const W = container.clientWidth;
     const H = container.clientHeight;
 
-    const tall     = H > 480;
-    const TOP_PAD  = tall ? 10 : 8;
-    const TITLE_H  = tall ? 22 : 26;
-    const FILTER_H = tall ? 64 : 76;
+    const compact  = H < 420;
+    const TOP_PAD  = compact ? 4 : 10;
+    const TITLE_H  = compact ? 18 : 22;
+    const FILTER_H = compact ? 50 : 64;
 
     // Responsive font sizes: scale with container width (~724px max on desktop).
     const baseLabelPx  = Math.max(9,  Math.min(15, W / 50));
