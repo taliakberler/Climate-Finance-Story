@@ -58,6 +58,7 @@
       gradId:      "gain-vuln-grad",
       title:       "ND-GAIN Vulnerability Index, 2023",
       tooltipLabel: "Vulnerability",
+      legendMin: 0, legendMax: 100, legendTicks: [25, 50, 75],
     },
     2: {
       dataKey:     "read",
@@ -66,14 +67,16 @@
       gradId:      "gain-read-grad",
       title:       "ND-GAIN Readiness Index 2023",
       tooltipLabel: "Readiness",
+      legendMin: 0, legendMax: 100, legendTicks: [25, 50, 75],
     },
     3: {
       dataKey:     "gain",
       scale:       1,                   // already 0–100
-      colorScale:  d3.scaleSequential([0, 100], d3.interpolateRdYlGn).clamp(true),
+      colorScale:  d3.scaleSequential([25, 75], d3.interpolateRdYlGn).clamp(true),
       gradId:      "gain-score-grad",
       title:       "ND-GAIN Country Index, 2023",
       tooltipLabel: "Score",
+      legendMin: 25, legendMax: 75, legendTicks: [50],
     },
   };
 
@@ -116,8 +119,11 @@
     // Title
     svgState.titleEl.text(view.title);
 
-    // Legend gradient: swap which gradient the bar references
+    // Legend gradient, end labels, and tick marks
     svgState.legendRect.attr("fill", "url(#" + view.gradId + ")");
+    svgState.legendLeftLabel.text(view.legendMin);
+    svgState.legendRightLabel.text(view.legendMax);
+    svgState.positionTicks(view);
 
     // Tooltip uses current view — stored on svgState for mousemove
     svgState.currentView = view;
@@ -214,33 +220,47 @@
     const barX = PAD_X + Math.round(Math.max(24, W * 0.08));
     const barY = H - SOURCE_H - barH - (compact ? 8 : 10);
 
-    svg.append("text").attr("class", "ghg-legend-text")
+    const legendLeftLabel = svg.append("text").attr("class", "ghg-legend-text")
       .attr("font-size", legendFontPx + "px")
       .attr("x", barX - 4).attr("y", barY + barH)
-      .attr("text-anchor", "end").text("0");
+      .attr("text-anchor", "end").text(view0.legendMin);
 
     const legendRect = svg.append("rect")
       .attr("x", barX).attr("y", barY)
       .attr("width", barW).attr("height", barH)
       .attr("fill", "url(#" + view0.gradId + ")");
 
-    svg.append("text").attr("class", "ghg-legend-text")
+    const legendRightLabel = svg.append("text").attr("class", "ghg-legend-text")
       .attr("font-size", legendFontPx + "px")
       .attr("x", barX + barW + 4).attr("y", barY + barH)
-      .attr("text-anchor", "start").text("100");
+      .attr("text-anchor", "start").text(view0.legendMax);
 
-    // Tick marks at 25, 50, 75
-    [25, 50, 75].forEach(function (v) {
-      const tx = barX + (v / 100) * barW;
-      svg.append("line")
-        .attr("x1", tx).attr("x2", tx)
-        .attr("y1", barY + barH).attr("y2", barY + barH + 4)
-        .attr("stroke", "#888").attr("stroke-width", 0.8);
-      svg.append("text").attr("class", "ghg-legend-text")
-        .attr("font-size", legendFontPx + "px")
-        .attr("x", tx).attr("y", barY + barH + 13)
-        .attr("text-anchor", "middle").text(v);
+    // Up to 3 tick marks, dynamically positioned per view
+    const tickEls = [0, 1, 2].map(function () {
+      return {
+        line: svg.append("line").attr("stroke", "#888").attr("stroke-width", 0.8),
+        text: svg.append("text").attr("class", "ghg-legend-text")
+          .attr("font-size", legendFontPx + "px").attr("text-anchor", "middle"),
+      };
     });
+
+    function positionTicks(view) {
+      const min = view.legendMin, max = view.legendMax;
+      tickEls.forEach(function (el, i) {
+        const v = view.legendTicks[i];
+        if (v !== undefined) {
+          const tx = barX + ((v - min) / (max - min)) * barW;
+          el.line.attr("x1", tx).attr("x2", tx)
+            .attr("y1", barY + barH).attr("y2", barY + barH + 4)
+            .attr("display", null);
+          el.text.attr("x", tx).attr("y", barY + barH + 13).text(v).attr("display", null);
+        } else {
+          el.line.attr("display", "none");
+          el.text.attr("display", "none");
+        }
+      });
+    }
+    positionTicks(view0);
 
     // No-data swatch
     const ndX = barX + barW + Math.round(Math.max(28, Math.min(56, W * 0.12)));
@@ -322,7 +342,7 @@
     container.appendChild(filtersDiv);
 
     // ── Store live references ─────────────────────────────
-    svgState = { countryPaths, titleEl, legendRect, currentView: view0 };
+    svgState = { countryPaths, titleEl, legendRect, legendLeftLabel, legendRightLabel, positionTicks, currentView: view0 };
 
     // Replay a step that arrived before the map was ready
     if (pendingStep !== null) {
