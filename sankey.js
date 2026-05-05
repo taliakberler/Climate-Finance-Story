@@ -320,6 +320,11 @@
     const TITLE_H  = tall ? 22 : 26;
     const FILTER_H = tall ? 44 : 56;
 
+    // Responsive font sizes: scale with container width (~724px max on desktop).
+    const baseLabelPx  = Math.max(9,  Math.min(15, W / 50));
+    const useLabelPx   = Math.max(8,  Math.min(13, baseLabelPx * 0.87));
+    const colHeaderPx  = Math.max(8,  Math.min(12, baseLabelPx * 0.82));
+
     const margin = {
       top:    TOP_PAD + TITLE_H + FILTER_H + 4,
       right:  118,
@@ -421,7 +426,7 @@
         .attr("dy",          "0.35em")
         .attr("text-anchor", function (d) { return d.x0 < col1T ? "end" : "start"; })
         .attr("font-size",   function (d) {
-          return (d.x0 < col1T || d.id.startsWith("Dest:")) ? "11px" : "9.5px";
+          return (d.x0 < col1T || d.id.startsWith("Dest:")) ? baseLabelPx + "px" : useLabelPx + "px";
         })
         .text(function (d) { return displayLabel(d.id); });
 
@@ -441,7 +446,7 @@
         .attr("y",              margin.top - 8)
         .attr("text-anchor",    "middle")
         .attr("font-family",    FONT)
-        .attr("font-size",      "9px")
+        .attr("font-size",      colHeaderPx + "px")
         .attr("letter-spacing", "0.08em")
         .attr("fill",           "#888")
         .style("text-transform", "uppercase")

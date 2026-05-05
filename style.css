@@ -27,7 +27,8 @@
 .image-text-body a,
 .section-intro a,
 .step p a,
-.footer-inner a {
+.footer-inner a 
+.image-text-step a{
   text-decoration: underline;
   text-decoration-color: var(--color-border);
   text-underline-offset: 3px;
@@ -36,7 +37,7 @@
 
 .image-text-body a,
 .step p a {
-  color: var(--color-ink);
+  color: inherit;
 }
 
 .section-intro a, 
