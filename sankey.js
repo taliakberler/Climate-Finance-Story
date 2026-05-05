@@ -1,7 +1,9 @@
 // ============================================================
 //  Section 3 Sankey — Global Climate Finance Flows
 //  Layers: Development_Status_Origin → Use →
-//          Region_Destination → Development_Status_Destination
+//          Development_Status_Destination
+//  Region multiselect dropdown filters flows by destination.
+//  Flow colors follow the Use category.
 //  Data: assets/data/CPI_finance.csv (values in USD billions)
 // ============================================================
 (function () {
@@ -11,74 +13,67 @@
   const container = document.getElementById("sankey-chart");
   if (!container) return;
 
-  // ── Color palette — mirrors income-group reds in the rest of the story ──
+  const FONT = "Franklin Gothic Medium, Arial Narrow, Arial, sans-serif";
+
+  // ── Color palette ─────────────────────────────────────────
   const STATUS_COLORS = {
-    "Advanced":      "#c11c2a",   // NYT red  (≈ High income)
-    "China":         "#e8695a",   // warm red (≈ Upper-middle)
-    "EMDE":          "#f4a97f",   // salmon   (≈ Lower-middle)
-    "LDC":           "#fdd9b0",   // pale     (≈ Low income)
+    "Advanced":      "#c11c2a",
+    "China":         "#e8695a",
+    "EMDE":          "#f4a97f",
+    "LDC":           "#fdd9b0",
     "Transregional": "#bbb0a8",
     "Unknown":       "#d0cdc8",
   };
 
-  // Use nodes — muted warm tones so they read as a separate category
   const USE_COLORS = {
-    "Mitigation":    "#7a6a5a",
-    "Adaptation":    "#a08060",
-    "Dual benefit":  "#c8aa80",
+    "Mitigation":   "#4a7c59",
+    "Adaptation":   "#4a6f8a",
+    "Dual benefit": "#7a6b8a",
   };
 
-  // Region nodes — earthy mid-tones drawn from the same warm palette
-  const REGION_COLORS = {
-    "East Asia & Pacific":           "#5a7a8a",
-    "Western Europe":                "#6a8a7a",
-    "US & Canada":                   "#7a8a6a",
-    "Latin America & Caribbean":     "#8a8a5a",
-    "Central Asia & Eastern Europe": "#8a7a5a",
-    "South Asia":                    "#9a8060",
-    "Sub-Saharan Africa":            "#b07050",
-    "Middle East & North Africa":    "#a87860",
-    "Other Oceania":                 "#6a8090",
-    "Transregional":                 "#bbb0a8",
-    "Unknown":                       "#d0cdc8",
-  };
-
-  // Short labels for tight region column
-  const REGION_SHORT = {
-    "East Asia & Pacific":           "E. Asia & Pacific",
-    "Western Europe":                "W. Europe",
-    "US & Canada":                   "US & Canada",
-    "Latin America & Caribbean":     "Latin America & Caribbean",
-    "Central Asia & Eastern Europe": "C. Asia & E. Europe",
-    "South Asia":                    "South Asia",
-    "Sub-Saharan Africa":            "Sub-Saharan Africa",
-    "Middle East & North Africa":    "Middle East & N. Africa",
-    "Other Oceania":                 "Other Oceania",
-    "Transregional":                 "Transregional",
-    "Unknown":                       "Unknown",
-  };
+  const REGIONS = [
+    { key: "all",                            label: "All regions" },
+    { key: "East Asia & Pacific",            label: "E. Asia & Pacific" },
+    { key: "Western Europe",                 label: "W. Europe" },
+    { key: "US & Canada",                    label: "US & Canada" },
+    { key: "Latin America & Caribbean",      label: "Latin America" },
+    { key: "Central Asia & Eastern Europe",  label: "C. Asia & E. Europe" },
+    { key: "South Asia",                     label: "South Asia" },
+    { key: "Sub-Saharan Africa",             label: "Sub-Saharan Africa" },
+    { key: "Middle East & North Africa",     label: "Middle East & N. Africa" },
+    { key: "Other Oceania",                  label: "Other Oceania" },
+    { key: "Transregional",                  label: "Transregional" },
+  ];
 
   function nodeColor(id) {
     if (id.startsWith("Origin:")) return STATUS_COLORS[id.slice(7)]  || "#ccc";
     if (id.startsWith("Use:"))    return USE_COLORS[id.slice(4)]     || "#ccc";
-    if (id.startsWith("Region:")) return REGION_COLORS[id.slice(7)]  || "#ccc";
     if (id.startsWith("Dest:"))   return STATUS_COLORS[id.slice(5)]  || "#ccc";
     return "#ccc";
   }
 
+  // Links are colored by the Use node in the chain
+  function linkColor(d) {
+    if (d.target.id.startsWith("Use:")) return nodeColor(d.target.id);  // Origin→Use
+    if (d.source.id.startsWith("Use:")) return nodeColor(d.source.id);  // Use→Dest
+    return nodeColor(d.source.id);
+  }
+
   function displayLabel(id) {
-    if (id.startsWith("Region:")) return REGION_SHORT[id.slice(7)] || id.slice(7);
     return id.replace(/^\w+:/, "");
   }
 
   // ── Step-highlight state ──────────────────────────────────
-  let currentStep  = 1;
-  let pendingStep  = null;
-  let linkPaths    = null;
-  let nodeRects    = null;
-  let nodeLabels   = null;
+  let currentStep = 1;
+  let pendingStep = null;
+  let linkPaths   = null;
+  let nodeRects   = null;
+  let nodeLabels  = null;
 
-  // Returns the set of Use node IDs that should be dimmed for a given step
+  // ── Region filter state ───────────────────────────────────
+  let selectedRegions = new Set();   // empty = all regions
+  let rawData = null;
+
   function dimmedForStep(stepNum) {
     if (stepNum === 1) return new Set(["Use:Adaptation", "Use:Dual benefit"]);
     if (stepNum === 2) return new Set(["Use:Mitigation", "Use:Dual benefit"]);
@@ -118,26 +113,27 @@
   };
 
   // ── Data aggregation ─────────────────────────────────────
-  function aggregate(data) {
-    const ou  = new Map();  // Origin → Use
-    const ur  = new Map();  // Use    → Region
-    const rd  = new Map();  // Region → Dest
+  function aggregate(data, selRegions) {
+    const rows = (!selRegions || selRegions.size === 0)
+      ? data
+      : data.filter(function (d) { return selRegions.has(d.Region_Destination); });
 
-    data.forEach(function (d) {
+    const ou = new Map();  // Origin → Use
+    const ud = new Map();  // Use    → Dest
+
+    rows.forEach(function (d) {
       const v = +d.Value;
       if (!v || isNaN(v)) return;
       const O = "Origin:" + d.Development_Status_Origin;
       const U = "Use:"    + d.Use;
-      const R = "Region:" + d.Region_Destination;
       const D = "Dest:"   + d.Development_Status_Destination;
 
-      const k1 = O + "|" + U;  ou.set(k1, (ou.get(k1) || 0) + v);
-      const k2 = U + "|" + R;  ur.set(k2, (ur.get(k2) || 0) + v);
-      const k3 = R + "|" + D;  rd.set(k3, (rd.get(k3) || 0) + v);
+      const k1 = O + "|" + U; ou.set(k1, (ou.get(k1) || 0) + v);
+      const k2 = U + "|" + D; ud.set(k2, (ud.get(k2) || 0) + v);
     });
 
     const links = [];
-    [ou, ur, rd].forEach(function (m) {
+    [ou, ud].forEach(function (m) {
       m.forEach(function (v, k) {
         const [s, t] = k.split("|");
         links.push({ source: s, target: t, value: v });
@@ -151,18 +147,185 @@
     return { nodes: nodes, links: links };
   }
 
+  // ── Dropdown positioning (responsive, called after render) ──
+  function setFilterTop() {
+    const filtersDiv = document.getElementById("sankey-region-filters");
+    if (!filtersDiv) return;
+    const H       = container.clientHeight;
+    const tall    = H > 480;
+    const TOP_PAD = tall ? 10 : 8;
+    const TITLE_H = tall ? 22 : 26;
+    filtersDiv.style.top = (TOP_PAD + TITLE_H + 4) + "px";
+  }
+
+  // ── Dropdown trigger label ────────────────────────────────
+  function updateTriggerLabel(trigger) {
+    const arrow = " ▾";
+    if (selectedRegions.size === 0) {
+      trigger.textContent = "All regions" + arrow;
+    } else if (selectedRegions.size === 1) {
+      const key    = Array.from(selectedRegions)[0];
+      const region = REGIONS.find(function (r) { return r.key === key; });
+      trigger.textContent = (region ? region.label : key) + arrow;
+    } else {
+      trigger.textContent = selectedRegions.size + " regions" + arrow;
+    }
+  }
+
+  // ── Checkbox row helper ───────────────────────────────────
+  function makeCheckItem(value, label, checked, onChange) {
+    const item = document.createElement("label");
+    item.style.display        = "flex";
+    item.style.alignItems     = "center";
+    item.style.gap            = "6px";
+    item.style.padding        = "3px 12px";
+    item.style.cursor         = "pointer";
+    item.style.fontFamily     = FONT;
+    item.style.fontSize       = "0.65rem";
+    item.style.letterSpacing  = "0.07em";
+    item.style.textTransform  = "uppercase";
+    item.style.color          = "var(--color-ink-lighter, #888)";
+    item.style.whiteSpace     = "nowrap";
+
+    item.addEventListener("mouseenter", function () { item.style.background = "var(--color-border, #eee)"; });
+    item.addEventListener("mouseleave", function () { item.style.background = ""; });
+
+    const cb    = document.createElement("input");
+    cb.type     = "checkbox";
+    cb.value    = value;
+    cb.checked  = checked;
+    cb.addEventListener("change", function () { onChange(cb.checked); });
+
+    item.appendChild(cb);
+    item.appendChild(document.createTextNode(" " + label));
+    return item;
+  }
+
+  // ── Build multiselect dropdown (once) ────────────────────
+  function buildDropdown() {
+    if (document.getElementById("sankey-region-filters")) return;
+
+    // Outer wrapper reuses .ghg-map-filters for absolute positioning
+    const wrapper = document.createElement("div");
+    wrapper.className = "ghg-map-filters";
+    wrapper.id = "sankey-region-filters";
+    wrapper.style.alignItems = "center";
+    wrapper.style.gap = "8px";
+
+    // Label
+    const lbl = document.createElement("span");
+    lbl.style.fontFamily    = FONT;
+    lbl.style.fontSize      = "0.65rem";
+    lbl.style.letterSpacing = "0.07em";
+    lbl.style.textTransform = "uppercase";
+    lbl.style.color         = "var(--color-ink-lighter, #888)";
+    lbl.textContent = "Destination Region";
+    wrapper.appendChild(lbl);
+
+    // Dropdown shell
+    const dropWrap = document.createElement("div");
+    dropWrap.style.position = "relative";
+    dropWrap.style.display  = "inline-block";
+
+    // Trigger
+    const trigger = document.createElement("button");
+    trigger.className      = "ghg-map-filter-btn";
+    trigger.style.minWidth = "130px";
+    trigger.style.textAlign = "left";
+    trigger.textContent    = "All regions ▾";
+
+    // Panel
+    const panel = document.createElement("div");
+    panel.style.display      = "none";
+    panel.style.position     = "absolute";
+    panel.style.top          = "calc(100% + 3px)";
+    panel.style.left         = "0";
+    panel.style.zIndex       = "200";
+    panel.style.background   = "var(--color-bg, #fff)";
+    panel.style.border       = "1px solid var(--color-border, #ccc)";
+    panel.style.borderRadius = "2px";
+    panel.style.padding      = "4px 0";
+    panel.style.minWidth     = "180px";
+    panel.style.boxShadow    = "0 2px 8px rgba(0,0,0,0.12)";
+
+    let panelOpen = false;
+
+    trigger.addEventListener("click", function (e) {
+      e.stopPropagation();
+      panelOpen = !panelOpen;
+      panel.style.display = panelOpen ? "block" : "none";
+    });
+
+    document.addEventListener("click", function () {
+      if (panelOpen) { panelOpen = false; panel.style.display = "none"; }
+    });
+
+    panel.addEventListener("click", function (e) { e.stopPropagation(); });
+
+    // "All regions" row
+    const allItem = makeCheckItem("all", "All regions", true, function (checked) {
+      if (!checked) return;
+      selectedRegions.clear();
+      panel.querySelectorAll("input[type=checkbox]").forEach(function (c) {
+        c.checked = c.value === "all";
+      });
+      updateTriggerLabel(trigger);
+      const agg = aggregate(rawData, selectedRegions);
+      render(agg.nodes, agg.links);
+    });
+    panel.appendChild(allItem);
+
+    const sep = document.createElement("hr");
+    sep.style.margin     = "4px 0";
+    sep.style.border     = "none";
+    sep.style.borderTop  = "1px solid var(--color-border, #ddd)";
+    panel.appendChild(sep);
+
+    // Individual region rows
+    REGIONS.slice(1).forEach(function (r) {
+      const item = makeCheckItem(r.key, r.label, false, function (checked) {
+        const allCb = panel.querySelector("input[value=\"all\"]");
+        if (checked) {
+          selectedRegions.add(r.key);
+          if (allCb) allCb.checked = false;
+        } else {
+          selectedRegions.delete(r.key);
+          if (selectedRegions.size === 0 && allCb) allCb.checked = true;
+        }
+        updateTriggerLabel(trigger);
+        const agg = aggregate(rawData, selectedRegions);
+        render(agg.nodes, agg.links);
+      });
+      panel.appendChild(item);
+    });
+
+    dropWrap.appendChild(trigger);
+    dropWrap.appendChild(panel);
+    wrapper.appendChild(dropWrap);
+    container.appendChild(wrapper);
+  }
+
   // ── Render ───────────────────────────────────────────────
   function render(rawNodes, rawLinks) {
-    d3.select(container).selectAll("*").remove();
-    linkPaths = null;
-    nodeRects = null;
+    d3.select(container).selectAll("svg").remove();
+    linkPaths  = null;
+    nodeRects  = null;
     nodeLabels = null;
 
     const W = container.clientWidth;
     const H = container.clientHeight;
 
-    // Tighter margins for a wider Sankey flow area on desktop
-    const margin = { top: 58, right: 118, bottom: 20, left: 78 };
+    const tall     = H > 480;
+    const TOP_PAD  = tall ? 10 : 8;
+    const TITLE_H  = tall ? 22 : 26;
+    const FILTER_H = tall ? 44 : 56;
+
+    const margin = {
+      top:    TOP_PAD + TITLE_H + FILTER_H + 4,
+      right:  118,
+      bottom: 20,
+      left:   78,
+    };
     const innerW = W - margin.left - margin.right;
     const innerH = H - margin.top  - margin.bottom;
 
@@ -172,7 +335,6 @@
     const g = svg.append("g")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    // Deep-copy nodes + links (d3-sankey mutates them)
     const nodes = rawNodes.map(function (n) { return { id: n.id }; });
     const links = rawLinks.map(function (l) {
       return { source: l.source, target: l.target, value: l.value };
@@ -187,26 +349,28 @@
       ({ nodes: nodes, links: links });
 
     // ── Tooltip ───────────────────────────────────────────
-    const tooltip = d3.select(container).append("div")
-      .attr("class", "ghg-line-tooltip")
-      .style("display", "none");
+    const tooltip = d3.select(container).select(".ghg-line-tooltip").empty()
+      ? d3.select(container).append("div").attr("class", "ghg-line-tooltip").style("display", "none")
+      : d3.select(container).select(".ghg-line-tooltip");
+
+    tooltip.style("display", "none");
 
     function showTooltip(event, html) {
       const [mx, my] = d3.pointer(event, container);
       const flip = mx > W * 0.55;
       tooltip.style("display", "block").html(html)
-        .style("left",  flip ? "auto"              : (mx + 12) + "px")
+        .style("left",  flip ? "auto"               : (mx + 12) + "px")
         .style("right", flip ? (W - mx + 12) + "px" : "auto")
         .style("top",   (my - 12) + "px");
     }
 
-    // ── Links ─────────────────────────────────────────────
+    // ── Links — colored by Use category ───────────────────
     linkPaths = g.append("g").attr("fill", "none")
       .selectAll("path")
       .data(links)
       .join("path")
         .attr("d", d3.sankeyLinkHorizontal())
-        .attr("stroke", function (d) { return nodeColor(d.source.id); })
+        .attr("stroke", function (d) { return linkColor(d); })
         .attr("stroke-width", function (d) { return Math.max(1, d.width); })
         .attr("stroke-opacity", 0.3)
         .on("mousemove", function (event, d) {
@@ -222,8 +386,8 @@
       .selectAll("rect")
       .data(nodes)
       .join("rect")
-        .attr("x", function (d) { return d.x0; })
-        .attr("y", function (d) { return d.y0; })
+        .attr("x",      function (d) { return d.x0; })
+        .attr("y",      function (d) { return d.y0; })
         .attr("width",  function (d) { return d.x1 - d.x0; })
         .attr("height", function (d) { return Math.max(1, d.y1 - d.y0); })
         .attr("fill",   function (d) { return nodeColor(d.id); })
@@ -236,14 +400,13 @@
         .on("mouseleave", function () { tooltip.style("display", "none"); });
 
     // ── Node labels ───────────────────────────────────────
-    // Col 0 (Origin): label LEFT of node
-    // Col 1 (Use), 2 (Region), 3 (Dest): label RIGHT of node
+    // Origin: label LEFT; Use + Dest: label RIGHT
     const useX  = d3.min(nodes.filter(function (n) { return n.id.startsWith("Use:"); }),
                          function (n) { return n.x0; }) || 0;
-    const col1T = useX + 1;  // anything with x0 < col1T is col 0
+    const col1T = useX + 1;
 
     const labelG = svg.append("g")
-      .attr("font-family", "Franklin Gothic Medium, Arial Narrow, Arial, sans-serif")
+      .attr("font-family", FONT)
       .attr("fill", "#1a1a1a");
 
     nodeLabels = labelG.selectAll("text")
@@ -254,10 +417,10 @@
             ? margin.left + d.x0 - 5
             : margin.left + d.x1 + 5;
         })
-        .attr("y", function (d) { return margin.top + (d.y0 + d.y1) / 2; })
-        .attr("dy", "0.35em")
+        .attr("y",           function (d) { return margin.top + (d.y0 + d.y1) / 2; })
+        .attr("dy",          "0.35em")
         .attr("text-anchor", function (d) { return d.x0 < col1T ? "end" : "start"; })
-        .attr("font-size", function (d) {
+        .attr("font-size",   function (d) {
           return (d.x0 < col1T || d.id.startsWith("Dest:")) ? "11px" : "9.5px";
         })
         .text(function (d) { return displayLabel(d.id); });
@@ -266,7 +429,6 @@
     const COLS = [
       { prefix: "Origin:", label: "Origin" },
       { prefix: "Use:",    label: "Use" },
-      { prefix: "Region:", label: "Destination Region" },
       { prefix: "Dest:",   label: "Destination" },
     ];
 
@@ -275,22 +437,22 @@
       if (!colNodes.length) return;
       const cx = margin.left + colNodes[0].x0 + (colNodes[0].x1 - colNodes[0].x0) / 2;
       svg.append("text")
-        .attr("x", cx)
-        .attr("y", margin.top - 8)
-        .attr("text-anchor", "middle")
-        .attr("font-family", "Franklin Gothic Medium, Arial Narrow, Arial, sans-serif")
-        .attr("font-size", "9px")
+        .attr("x",              cx)
+        .attr("y",              margin.top - 8)
+        .attr("text-anchor",    "middle")
+        .attr("font-family",    FONT)
+        .attr("font-size",      "9px")
         .attr("letter-spacing", "0.08em")
-        .attr("fill", "#888")
+        .attr("fill",           "#888")
         .style("text-transform", "uppercase")
         .text(col.label.toUpperCase());
     });
 
     // ── Chart title ───────────────────────────────────────
     svg.append("text")
-      .attr("class", "ghg-line-title")
-      .attr("x", W / 2)
-      .attr("y", 15)
+      .attr("class",       "ghg-line-title")
+      .attr("x",           W / 2)
+      .attr("y",           TOP_PAD + TITLE_H - 4)
       .attr("text-anchor", "middle")
       .text("Global Climate Finance Flows (USD Billions)");
 
@@ -299,35 +461,37 @@
       .attr("href", "https://www.climatepolicyinitiative.org/resources/data-visualizations/global-landscape-of-climate-finance-data-dashboard/")
       .attr("target", "_blank").attr("rel", "noopener noreferrer")
       .append("text")
-      .attr("class", "ghg-line-source")
-      .attr("x", W - 8)
-      .attr("y", H - 5)
+      .attr("class",       "ghg-line-source")
+      .attr("x",           W - 8)
+      .attr("y",           H - 5)
       .attr("text-anchor", "end")
       .text("Source: Climate Policy Initiative");
 
-    // Apply the current step immediately (no animation on first render)
     applyStep(currentStep, false);
 
     if (pendingStep !== null) {
       applyStep(pendingStep, false);
-      currentStep  = pendingStep;
-      pendingStep  = null;
+      currentStep = pendingStep;
+      pendingStep = null;
     }
+
+    setFilterTop();
   }
 
   // ── Load + build ─────────────────────────────────────────
-  let cached = null;
-
   function attemptBuild() {
     if (container.clientWidth > 0 && container.clientHeight > 0) {
-      render(cached.nodes, cached.links);
+      buildDropdown();
+      const agg = aggregate(rawData, selectedRegions);
+      render(agg.nodes, agg.links);
 
       let resizeTimer;
       if (typeof ResizeObserver !== "undefined") {
         new ResizeObserver(function () {
           clearTimeout(resizeTimer);
           resizeTimer = setTimeout(function () {
-            render(cached.nodes, cached.links);
+            const agg2 = aggregate(rawData, selectedRegions);
+            render(agg2.nodes, agg2.links);
           }, 200);
         }).observe(container);
       }
@@ -337,7 +501,7 @@
   }
 
   d3.csv(CSV_URL).then(function (data) {
-    cached = aggregate(data);
+    rawData = data;
     attemptBuild();
   }).catch(function (err) {
     console.error("Sankey: failed to load data", err);
