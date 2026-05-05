@@ -318,7 +318,7 @@
     const tall     = H > 480;
     const TOP_PAD  = tall ? 10 : 8;
     const TITLE_H  = tall ? 22 : 26;
-    const FILTER_H = tall ? 44 : 56;
+    const FILTER_H = tall ? 64 : 76;
 
     // Responsive font sizes: scale with container width (~724px max on desktop).
     const baseLabelPx  = Math.max(9,  Math.min(15, W / 50));
@@ -459,7 +459,7 @@
       .attr("x",           W / 2)
       .attr("y",           TOP_PAD + TITLE_H - 4)
       .attr("text-anchor", "middle")
-      .text("Global Climate Finance Flows (USD Billions)");
+      .text("Global Climate Finance Flows (USD Billions), 2023");
 
     // ── Source note ───────────────────────────────────────
     svg.append("a")
