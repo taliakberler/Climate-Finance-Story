@@ -178,16 +178,12 @@
       if (d.ISO) lookup.set(d.ISO, d);
     });
 
-    // Emissions color scale: green → light yellow → dark red (log)
+    // Emissions color scale (log, light→dark red)
     const LEGEND_MIN = 1e8;    // 0.1 Bt
     const LEGEND_MAX = 6e11;   // 600 Bt
     const colorScale = d3.scaleSequentialLog(
       [LEGEND_MIN, LEGEND_MAX],
-      function (t) {
-        return t < 0.5
-          ? d3.interpolateRgb("green", "#ffffbf")(t * 2)
-          : d3.interpolateRgb("#ffffbf", "#c11c2a")((t - 0.5) * 2);
-      }
+      function (t) { return d3.interpolateReds(0.1 + 0.9 * Math.pow(t, 3)); }
     ).clamp(true);
 
     // activeGroup is module-level — persists across rebuilds
