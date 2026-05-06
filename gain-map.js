@@ -54,29 +54,29 @@
     1: {
       dataKey:     "vuln",
       scale:       100,                 // multiply raw value by this
-      colorScale:  d3.scaleSequential([0, 100], d3.interpolateRgb("#ffffbf", "red")).clamp(true),
+      colorScale:  d3.scaleSequential([20, 80], d3.interpolateRgb("#ffffbf", "red")).clamp(true),
       gradId:      "gain-vuln-grad",
       title:       "ND-GAIN Vulnerability Index, 2023",
       tooltipLabel: "Vulnerability",
-      legendMin: 0, legendMax: 100, legendTicks: [25, 50, 75],
+      legendMin: 20, legendMax: 80, legendTicks: [35, 50, 65],
     },
     2: {
       dataKey:     "read",
       scale:       100,
-      colorScale:  d3.scaleSequential([0, 100], d3.interpolateRgb("#ffffbf", "green")).clamp(true),
+      colorScale:  d3.scaleSequential([20, 80], d3.interpolateRgb("#ffffbf", "green")).clamp(true),
       gradId:      "gain-read-grad",
       title:       "ND-GAIN Readiness Index 2023",
       tooltipLabel: "Readiness",
-      legendMin: 0, legendMax: 100, legendTicks: [25, 50, 75],
+      legendMin: 20, legendMax: 80, legendTicks: [35, 50, 65],
     },
     3: {
       dataKey:     "gain",
-      scale:       1,                   // already 0–100
-      colorScale:  d3.scaleSequential([25, 75], d3.interpolateRdYlGn).clamp(true),
+      scale:       1,                   
+      colorScale:  d3.scaleSequential([20, 80], d3.interpolateRdYlGn).clamp(true),
       gradId:      "gain-score-grad",
       title:       "ND-GAIN Country Index, 2023",
       tooltipLabel: "Score",
-      legendMin: 25, legendMax: 75, legendTicks: [50],
+      legendMin: 20, legendMax: 80, legendTicks: [35, 50, 65],
     },
   };
 
