@@ -88,7 +88,7 @@ body {
 
 .nav-title {
   font-family: var(--font-sans);
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -116,7 +116,7 @@ body {
   display: block;
   padding: 0 16px;
   font-family: var(--font-sans);
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--color-ink-lighter);
