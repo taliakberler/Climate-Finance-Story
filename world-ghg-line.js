@@ -76,9 +76,11 @@
   const container = document.getElementById("world-ghg-line-chart");
   if (!container) return;
 
-  const margin = { top: 48, right: 28, bottom: 52, left: 82 };
+  const MARGIN_WIDE   = { top: 48, right: 28, bottom: 52, left: 82 };
+  const MARGIN_NARROW = { top: 44, right: 14, bottom: 44, left: 52 };
+  let margin = MARGIN_WIDE;
 
-  let lineViewG, stackedViewG, titleEl, overlayEl;
+  let lineViewG, stackedViewG, titleEl, titleMaxW, overlayEl;
   let currentView = "line";
   let pendingStep = null;
   let activeGroup = "all";   // map income-filter state, persists across rebuilds
@@ -112,6 +114,7 @@
       switchView("line");
       titleEl.text("World Greenhouse Gas Emissions, 1850\u20132024");
     }
+    window.fitSvgText(titleEl, titleMaxW);
   }
 
   function switchView(view) {
@@ -191,12 +194,14 @@
     // ── SVG ───────────────────────────────────────────────
     // On compact containers (mobile/tablet) shrink chrome to give map more room
     const compact  = H < 420;
+    const narrow   = window.isNarrowChart(W);
     const TOP_PAD  = compact ? 4 : 10;
     const TITLE_H  = compact ? 14 : 18;
     const FILTER_H = compact ? 22 : 28;
     const LEGEND_H = compact ? 20 : 28;
-    const SOURCE_H = compact ? 6  : 10;
-    const PAD_X    = 14;
+    // On phones the source sits on its own line below the legend
+    const SOURCE_H = narrow ? 22 : (compact ? 6 : 10);
+    const PAD_X    = narrow ? 8 : 14;
 
     const mapTop    = TOP_PAD + TITLE_H + FILTER_H + 4;
     const mapBottom = H - LEGEND_H - SOURCE_H - 4;
@@ -240,18 +245,19 @@
       .attr("d", path);
 
     // Title
-    svg.append("text")
+    const mapTitle = svg.append("text")
       .attr("class", "ghg-line-title")
       .attr("x", W / 2)
       .attr("y", TOP_PAD + TITLE_H - 4)
       .attr("text-anchor", "middle")
       .text("Cumulative GHG Emissions by Country, 1850-2024");
+    window.fitSvgText(mapTitle, W - 2 * PAD_X);
 
     // ── Gradient legend ───────────────────────────────────
     const legendFontPx = Math.max(9, Math.min(11, W / 38));
     const barW  = Math.min(200, W * 0.35);
     const barH  = 10;
-    const barX  = PAD_X + Math.round(Math.max(24, W * 0.08));
+    const barX  = PAD_X + Math.round(Math.max(30, W * 0.08));
     const barY  = H - SOURCE_H - barH - (compact ? 8 : 10);
 
     const gradId = "ghg-em-grad";
@@ -360,16 +366,17 @@
     filtersDiv.style.top = (TOP_PAD + TITLE_H + 4) + "px";
 
     [
-      { key: "all", label: "All countries" },
-      { key: "H",   label: "High income"   },
-      { key: "UM",  label: "Upper-middle"  },
-      { key: "LM",  label: "Lower-middle"  },
-      { key: "L",   label: "Low income"    },
+      { key: "all", label: "All countries", short: "All"       },
+      { key: "H",   label: "High income",   short: "High"      },
+      { key: "UM",  label: "Upper-middle",  short: "Upper-mid" },
+      { key: "LM",  label: "Lower-middle",  short: "Lower-mid" },
+      { key: "L",   label: "Low income",    short: "Low"       },
     ].forEach(function (g) {
       const btn = document.createElement("button");
       btn.className = "ghg-map-filter-btn" + (g.key === activeGroup ? " is-active" : "");
       btn.dataset.group = g.key;
-      btn.textContent = g.label;
+      btn.textContent = narrow ? g.short : g.label;
+      btn.title = g.label;
       btn.addEventListener("click", function () {
         if (activeGroup === g.key) return;
         activeGroup = g.key;
@@ -389,6 +396,7 @@
   function buildChart(worldData, series, pivoted) {
     const W = container.clientWidth;
     const H = container.clientHeight;
+    margin = window.isNarrowChart(W) ? MARGIN_NARROW : MARGIN_WIDE;
     const w = W - margin.left - margin.right;
     const h = H - margin.top  - margin.bottom;
 
@@ -423,7 +431,7 @@
     // X axis
     g.append("g").attr("class", "ghg-line-axis")
       .attr("transform", `translate(0,${h})`)
-      .call(d3.axisBottom(x).tickFormat(d3.format("d")).ticks(7));
+      .call(d3.axisBottom(x).tickFormat(d3.format("d")).ticks(w < 300 ? 4 : 7));
 
     // Y axis
     g.append("g").attr("class", "ghg-line-axis")
@@ -435,17 +443,19 @@
       .attr("class", "ghg-line-label")
       .attr("transform", "rotate(-90)")
       .attr("x", -(h / 2))
-      .attr("y", -margin.left + 22)
+      .attr("y", -margin.left + (window.isNarrowChart(W) ? 14 : 22))
       .attr("text-anchor", "middle")
       .text("Billion tonnes CO\u2082e / year");
 
-    // Title
-    titleEl = g.append("text")
+    // Title, centred on the whole SVG so it has the full width to fit in
+    titleEl = svg.append("text")
       .attr("class", "ghg-line-title")
-      .attr("x", w / 2)
-      .attr("y", -20)
+      .attr("x", W / 2)
+      .attr("y", margin.top - 20)
       .attr("text-anchor", "middle")
       .text("World Greenhouse Gas Emissions, 1850\u20132024");
+    titleMaxW = W - 16;
+    window.fitSvgText(titleEl, titleMaxW);
 
     // Source note
     svg.append("a")

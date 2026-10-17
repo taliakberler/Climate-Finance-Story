@@ -325,11 +325,13 @@
     const useLabelPx   = Math.max(8,  Math.min(13, baseLabelPx * 0.87));
     const colHeaderPx  = Math.max(8,  Math.min(12, baseLabelPx * 0.82));
 
+    // Side margins hold the node labels; phones get just enough for them
+    const narrow = window.isNarrowChart(W);
     const margin = {
       top:    TOP_PAD + TITLE_H + FILTER_H + 4,
-      right:  118,
+      right:  narrow ? 74 : 118,
       bottom: 20,
-      left:   78,
+      left:   narrow ? 66 : 78,
     };
     const innerW = W - margin.left - margin.right;
     const innerH = H - margin.top  - margin.bottom;
@@ -430,6 +432,27 @@
         })
         .text(function (d) { return displayLabel(d.id); });
 
+    // Small nodes sit a few pixels apart, so their labels overprint.
+    // Within each column, push labels apart to at least one line height,
+    // then pull the column back up if it ran past the bottom.
+    const labelCols = new Map();
+    nodeLabels.each(function (d) {
+      const key = d.x0 < col1T ? "origin" : (d.id.startsWith("Dest:") ? "dest" : "use");
+      if (!labelCols.has(key)) labelCols.set(key, []);
+      labelCols.get(key).push({ el: this, y: margin.top + (d.y0 + d.y1) / 2,
+                                px: parseFloat(this.getAttribute("font-size")) });
+    });
+    labelCols.forEach(function (items) {
+      items.sort(function (a, b) { return a.y - b.y; });
+      for (let i = 1; i < items.length; i++) {
+        const gap = Math.max(items[i - 1].px, items[i].px) * 1.05;
+        if (items[i].y - items[i - 1].y < gap) items[i].y = items[i - 1].y + gap;
+      }
+      const overflow = items.length ? items[items.length - 1].y - (H - 20) : 0;
+      if (overflow > 0) items.forEach(function (it) { it.y -= overflow; });
+      items.forEach(function (it) { it.el.setAttribute("y", it.y); });
+    });
+
     // ── Column headers ────────────────────────────────────
     const COLS = [
       { prefix: "Origin:", label: "Origin" },
@@ -454,12 +477,13 @@
     });
 
     // ── Chart title ───────────────────────────────────────
-    svg.append("text")
+    const title = svg.append("text")
       .attr("class",       "ghg-line-title")
       .attr("x",           W / 2)
       .attr("y",           TOP_PAD + TITLE_H - 4)
       .attr("text-anchor", "middle")
       .text("Global Climate Finance Flows (USD Billions), 2023");
+    window.fitSvgText(title, W - 16);
 
     // ── Source note ───────────────────────────────────────
     svg.append("a")
