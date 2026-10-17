@@ -64,6 +64,14 @@
   }
 
   // ── Step-highlight state ──────────────────────────────────
+  const TITLE = "Global Climate Finance Flows (USD Billions), 2023";
+
+  // Title block height; grows by a line when the title wraps on phones.
+  // Shared by render() and setFilterTop() so the dropdown sits under it.
+  function titleBlockH(W, compact) {
+    return (compact ? 18 : 22) + window.titleExtraHeight([TITLE], W - 16);
+  }
+
   let currentStep = 1;
   let pendingStep = null;
   let linkPaths   = null;
@@ -154,7 +162,7 @@
     const H       = container.clientHeight;
     const compact = H < 420;
     const TOP_PAD = compact ? 4 : 10;
-    const TITLE_H = compact ? 18 : 22;
+    const TITLE_H = titleBlockH(container.clientWidth, compact);
     filtersDiv.style.top = (TOP_PAD + TITLE_H + 4) + "px";
   }
 
@@ -317,7 +325,7 @@
 
     const compact  = H < 420;
     const TOP_PAD  = compact ? 4 : 10;
-    const TITLE_H  = compact ? 18 : 22;
+    const TITLE_H  = titleBlockH(W, compact);
     const FILTER_H = compact ? 50 : 64;
 
     // Responsive font sizes: scale with container width (~724px max on desktop).
@@ -480,10 +488,8 @@
     const title = svg.append("text")
       .attr("class",       "ghg-line-title")
       .attr("x",           W / 2)
-      .attr("y",           TOP_PAD + TITLE_H - 4)
-      .attr("text-anchor", "middle")
-      .text("Global Climate Finance Flows (USD Billions), 2023");
-    window.fitSvgText(title, W - 16);
+      .attr("text-anchor", "middle");
+    window.setSvgTitle(title, TITLE, W - 16, TOP_PAD + TITLE_H - 4);
 
     // ── Source note ───────────────────────────────────────
     svg.append("a")
