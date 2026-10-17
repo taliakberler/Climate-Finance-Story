@@ -27,8 +27,8 @@
 .image-text-body a,
 .section-intro a,
 .step p a,
-.footer-inner a 
-.image-text-step a{
+.footer-inner a,
+.image-text-step a {
   text-decoration: underline;
   text-decoration-color: var(--color-border);
   text-underline-offset: 3px;
@@ -154,6 +154,7 @@ body {
    ============================================================ */
 .title-section {
   min-height: 100vh;
+  min-height: 100svh; /* ignores the mobile browser toolbar */
   padding-top: var(--nav-height);
   display: flex;
   align-items: center;
@@ -349,7 +350,7 @@ ol.section-intro li {
 }
 
 .finance-card {
-  flex: 1;
+  flex: 1 1 220px;   /* two across on wide screens, stacked on phones */
   perspective: 800px;
   cursor: pointer;
   min-height: 140px;
@@ -678,6 +679,11 @@ a:hover .ghg-line-source,
   border-color: #aaa;
 }
 
+@media (max-width: 519px) {
+  .ghg-map-filters { gap: 4px; padding: 0 8px; }
+  .ghg-map-filter-btn { padding: 3px 7px; letter-spacing: 0.04em; }
+}
+
 .ghg-map-filter-btn.is-active {
   color: #fff;
   background: var(--color-accent);
@@ -997,15 +1003,22 @@ a:hover .ghg-line-source,
   /* Title page */
   .title-content { padding: 48px 16px; }
 
-  /* Section header */
+  /* Section header: same 16px gutter as the steps, bar inside it */
   .section-header {
     margin-bottom: 40px;
-    padding-left: 16px;
+    padding: 0 16px 0 31px;
   }
 
   .section-header::before {
-    left: 0;
+    left: 16px;
   }
+
+  .section-intro { padding-right: 0; }
+
+  .finance-card,
+  .finance-card-inner { min-height: 120px; }
+
+  .finance-card-back { font-size: 0.9rem; padding: 18px 16px; }
 
   /* Scrolly layout: block so sticky works; no side padding (map edge-to-edge) */
   .scrolly-container {
@@ -1019,6 +1032,7 @@ a:hover .ghg-line-source,
     top: var(--nav-height);
     width: 100%;
     height: 45vh;
+    height: 45svh;
     min-height: 240px;
     max-height: none;
     border-radius: 0;
@@ -1032,7 +1046,7 @@ a:hover .ghg-line-source,
   .steps,
   .scrolly-container .steps {
     width: 100%;
-    padding: 24px 0 64px 16px;  /* no right padding — step text aligns with overlay right edge */
+    padding: 24px 16px 64px;
   }
 
   .step { margin-bottom: 28px; }
@@ -1072,11 +1086,15 @@ a:hover .ghg-line-source,
 /* ── Small phone (< 480px) ───────────────────────────────── */
 @media (max-width: 479px) {
   .sticky-map {
-    height: 40vh;
-    min-height: 200px;
+    height: 42vh;
+    height: 42svh;
+    min-height: 220px;
   }
 
   .title-content { padding: 36px 16px; }
+
+  .subhead { font-size: 1.1rem; }
+  .subhead2 { font-size: 1.2rem; }
 
   .scrolly-section {
     padding-top: calc(var(--nav-height) + 48px);
@@ -1084,7 +1102,6 @@ a:hover .ghg-line-source,
   }
 
   .section-header {
-    padding-left: 14px;
     margin-bottom: 32px;
   }
 

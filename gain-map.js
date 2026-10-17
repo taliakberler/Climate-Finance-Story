@@ -118,6 +118,7 @@
 
     // Title
     svgState.titleEl.text(view.title);
+    window.fitSvgText(svgState.titleEl, svgState.titleMaxW);
 
     // Legend gradient, end labels, and tick marks
     svgState.legendRect.attr("fill", "url(#" + view.gradId + ")");
@@ -151,12 +152,14 @@
     const H = container.clientHeight;
 
     const compact  = H < 420;
+    const narrow   = window.isNarrowChart(W);
     const TOP_PAD  = compact ? 4 : 10;
     const TITLE_H  = compact ? 14 : 18;
     const FILTER_H = compact ? 22 : 28;
     const LEGEND_H = compact ? 20 : 28;
-    const SOURCE_H = compact ? 6  : 10;
-    const PAD_X    = 14;
+    // On phones the source sits on its own line below the legend
+    const SOURCE_H = narrow ? 22 : (compact ? 6 : 10);
+    const PAD_X    = narrow ? 8 : 14;
 
     const mapTop    = TOP_PAD + TITLE_H + FILTER_H + 4;
     const mapBottom = H - LEGEND_H - SOURCE_H - 4;
@@ -212,6 +215,8 @@
       .attr("y", TOP_PAD + TITLE_H - 4)
       .attr("text-anchor", "middle")
       .text(view0.title);
+    const titleMaxW = W - 2 * PAD_X;
+    window.fitSvgText(titleEl, titleMaxW);
 
     // ── Legend ────────────────────────────────────────────
     const legendFontPx = Math.max(9, Math.min(11, W / 38));
@@ -317,16 +322,17 @@
     filtersDiv.style.top = (TOP_PAD + TITLE_H + 4) + "px";
 
     [
-      { key: "all", label: "All countries" },
-      { key: "H",   label: "High income"   },
-      { key: "UM",  label: "Upper-middle"  },
-      { key: "LM",  label: "Lower-middle"  },
-      { key: "L",   label: "Low income"    },
+      { key: "all", label: "All countries", short: "All"       },
+      { key: "H",   label: "High income",   short: "High"      },
+      { key: "UM",  label: "Upper-middle",  short: "Upper-mid" },
+      { key: "LM",  label: "Lower-middle",  short: "Lower-mid" },
+      { key: "L",   label: "Low income",    short: "Low"       },
     ].forEach(function (g) {
       const btn = document.createElement("button");
       btn.className = "ghg-map-filter-btn" + (g.key === activeGroup ? " is-active" : "");
       btn.dataset.group = g.key;
-      btn.textContent = g.label;
+      btn.textContent = narrow ? g.short : g.label;
+      btn.title = g.label;
       btn.addEventListener("click", function () {
         if (activeGroup === g.key) return;
         activeGroup = g.key;
@@ -342,7 +348,7 @@
     container.appendChild(filtersDiv);
 
     // ── Store live references ─────────────────────────────
-    svgState = { countryPaths, titleEl, legendRect, legendLeftLabel, legendRightLabel, positionTicks, currentView: view0 };
+    svgState = { countryPaths, titleEl, titleMaxW, legendRect, legendLeftLabel, legendRightLabel, positionTicks, currentView: view0 };
 
     // Replay a step that arrived before the map was ready
     if (pendingStep !== null) {
