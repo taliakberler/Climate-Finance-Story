@@ -117,8 +117,7 @@
       .attr("fill", function (d) { return countryColor(d, view); });
 
     // Title
-    svgState.titleEl.text(view.title);
-    window.fitSvgText(svgState.titleEl, svgState.titleMaxW);
+    window.setSvgTitle(svgState.titleEl, view.title, svgState.titleMaxW, svgState.titleBaseY);
 
     // Legend gradient, end labels, and tick marks
     svgState.legendRect.attr("fill", "url(#" + view.gradId + ")");
@@ -154,12 +153,16 @@
     const compact  = H < 420;
     const narrow   = window.isNarrowChart(W);
     const TOP_PAD  = compact ? 4 : 10;
-    const TITLE_H  = compact ? 14 : 18;
+    const TITLE_BASE_H = compact ? 14 : 18;
     const FILTER_H = compact ? 22 : 28;
     const LEGEND_H = compact ? 20 : 28;
     // On phones the source sits on its own line below the legend
     const SOURCE_H = narrow ? 22 : (compact ? 6 : 10);
     const PAD_X    = narrow ? 8 : 14;
+    const titleMaxW = W - 2 * PAD_X;
+    const TITLE_H  = TITLE_BASE_H + window.titleExtraHeight(
+      Object.values(VIEWS).map(function (v) { return v.title; }), titleMaxW);
+    const titleBaseY = TOP_PAD + TITLE_H - 4;
 
     const mapTop    = TOP_PAD + TITLE_H + FILTER_H + 4;
     const mapBottom = H - LEGEND_H - SOURCE_H - 4;
@@ -212,11 +215,8 @@
     const titleEl = svg.append("text")
       .attr("class", "ghg-line-title")
       .attr("x", W / 2)
-      .attr("y", TOP_PAD + TITLE_H - 4)
-      .attr("text-anchor", "middle")
-      .text(view0.title);
-    const titleMaxW = W - 2 * PAD_X;
-    window.fitSvgText(titleEl, titleMaxW);
+      .attr("text-anchor", "middle");
+    window.setSvgTitle(titleEl, view0.title, titleMaxW, titleBaseY);
 
     // ── Legend ────────────────────────────────────────────
     const legendFontPx = Math.max(9, Math.min(11, W / 38));
@@ -348,7 +348,7 @@
     container.appendChild(filtersDiv);
 
     // ── Store live references ─────────────────────────────
-    svgState = { countryPaths, titleEl, titleMaxW, legendRect, legendLeftLabel, legendRightLabel, positionTicks, currentView: view0 };
+    svgState = { countryPaths, titleEl, titleMaxW, titleBaseY, legendRect, legendLeftLabel, legendRightLabel, positionTicks, currentView: view0 };
 
     // Replay a step that arrived before the map was ready
     if (pendingStep !== null) {

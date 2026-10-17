@@ -80,7 +80,13 @@
   const MARGIN_NARROW = { top: 44, right: 14, bottom: 44, left: 52 };
   let margin = MARGIN_WIDE;
 
-  let lineViewG, stackedViewG, titleEl, titleMaxW, overlayEl;
+  const LINE_TITLES = [
+    "World Greenhouse Gas Emissions, 1850\u20132024",
+    "GHG Emissions by Income Group, 1850\u20132024",
+  ];
+  const MAP_TITLE = "Cumulative GHG Emissions by Country, 1850-2024";
+
+  let lineViewG, stackedViewG, titleEl, titleMaxW, titleBaseY, overlayEl;
   let currentView = "line";
   let pendingStep = null;
   let activeGroup = "all";   // map income-filter state, persists across rebuilds
@@ -106,15 +112,14 @@
   function applyStep(stepNum) {
     if (stepNum === 2) {
       switchView("stacked");
-      titleEl.text("GHG Emissions by Income Group, 1850\u20132024");
+      window.setSvgTitle(titleEl, LINE_TITLES[1], titleMaxW, titleBaseY);
     } else if (stepNum === 3) {
       switchView("map");
-      titleEl.text("World Greenhouse Gas Emissions, 1850\u20132024");
+      window.setSvgTitle(titleEl, LINE_TITLES[0], titleMaxW, titleBaseY);
     } else {
       switchView("line");
-      titleEl.text("World Greenhouse Gas Emissions, 1850\u20132024");
+      window.setSvgTitle(titleEl, LINE_TITLES[0], titleMaxW, titleBaseY);
     }
-    window.fitSvgText(titleEl, titleMaxW);
   }
 
   function switchView(view) {
@@ -196,12 +201,14 @@
     const compact  = H < 420;
     const narrow   = window.isNarrowChart(W);
     const TOP_PAD  = compact ? 4 : 10;
-    const TITLE_H  = compact ? 14 : 18;
+    const TITLE_BASE_H = compact ? 14 : 18;
     const FILTER_H = compact ? 22 : 28;
     const LEGEND_H = compact ? 20 : 28;
     // On phones the source sits on its own line below the legend
     const SOURCE_H = narrow ? 22 : (compact ? 6 : 10);
     const PAD_X    = narrow ? 8 : 14;
+    const TITLE_X  = window.titleExtraHeight([MAP_TITLE], W - 2 * PAD_X);
+    const TITLE_H  = TITLE_BASE_H + TITLE_X;
 
     const mapTop    = TOP_PAD + TITLE_H + FILTER_H + 4;
     const mapBottom = H - LEGEND_H - SOURCE_H - 4;
@@ -248,10 +255,8 @@
     const mapTitle = svg.append("text")
       .attr("class", "ghg-line-title")
       .attr("x", W / 2)
-      .attr("y", TOP_PAD + TITLE_H - 4)
-      .attr("text-anchor", "middle")
-      .text("Cumulative GHG Emissions by Country, 1850-2024");
-    window.fitSvgText(mapTitle, W - 2 * PAD_X);
+      .attr("text-anchor", "middle");
+    window.setSvgTitle(mapTitle, MAP_TITLE, W - 2 * PAD_X, TOP_PAD + TITLE_H - 4);
 
     // ── Gradient legend ───────────────────────────────────
     const legendFontPx = Math.max(9, Math.min(11, W / 38));
@@ -396,7 +401,11 @@
   function buildChart(worldData, series, pivoted) {
     const W = container.clientWidth;
     const H = container.clientHeight;
-    margin = window.isNarrowChart(W) ? MARGIN_NARROW : MARGIN_WIDE;
+    const base  = window.isNarrowChart(W) ? MARGIN_NARROW : MARGIN_WIDE;
+    titleMaxW   = W - 16;
+    margin      = Object.assign({}, base,
+      { top: base.top + window.titleExtraHeight(LINE_TITLES, titleMaxW) });
+    titleBaseY  = margin.top - 20;
     const w = W - margin.left - margin.right;
     const h = H - margin.top  - margin.bottom;
 
@@ -451,11 +460,8 @@
     titleEl = svg.append("text")
       .attr("class", "ghg-line-title")
       .attr("x", W / 2)
-      .attr("y", margin.top - 20)
-      .attr("text-anchor", "middle")
-      .text("World Greenhouse Gas Emissions, 1850\u20132024");
-    titleMaxW = W - 16;
-    window.fitSvgText(titleEl, titleMaxW);
+      .attr("text-anchor", "middle");
+    window.setSvgTitle(titleEl, LINE_TITLES[0], titleMaxW, titleBaseY);
 
     // Source note
     svg.append("a")
